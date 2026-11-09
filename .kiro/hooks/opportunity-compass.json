@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "tests-on-save",
+      "description": "Run the whole local test suite (including the no-network privacy checks in tests/privacy.test.mjs) whenever the agent saves a source, test or page file.",
+      "trigger": "PostFileSave",
+      "matcher": "((src|tests)/.*\\.mjs|index\\.html)$",
+      "action": {
+        "type": "command",
+        "command": "node --test tests/*.test.mjs"
+      },
+      "timeout": 60
+    }
+  ]
+}

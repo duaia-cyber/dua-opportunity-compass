@@ -1,0 +1,26 @@
+{
+  "name": "notice-auditor",
+  "description": "Audits Opportunity Compass extraction against the source-of-truth rules and runs the local test suite. Read-only on source code.",
+  "prompt": "file://./notice-auditor.md",
+  "tools": ["read", "shell"],
+  "permissions": {
+    "rules": [
+      { "capability": "shell", "match": ["node --test*", "node scripts/evaluate-corpus.mjs*"], "effect": "allow" },
+      { "capability": "shell", "match": ["*"], "exclude": ["node --test*", "node scripts/evaluate-corpus.mjs*"], "effect": "ask" },
+      { "capability": "fs_write", "match": ["**"], "effect": "deny" }
+    ]
+  },
+  "resources": [
+    "file://../steering/source-of-truth.md",
+    "file://../specs/opportunity-compass/requirements.md",
+    "file://../../docs/EVALUATION.md"
+  ],
+  "hooks": [
+    {
+      "name": "tests-at-start",
+      "trigger": "SessionStart",
+      "action": { "type": "command", "command": "node --test tests/*.test.mjs" }
+    }
+  ],
+  "welcomeMessage": "Notice auditor ready. Give me a notice (text or PDF path) or ask me to audit a module against the source-of-truth rules."
+}
