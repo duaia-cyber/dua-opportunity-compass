@@ -326,4 +326,9 @@ export function analyse({ text, previousText, url }) {
   return { items, changes, sourceUrl, itemsTruncated, changesTruncated };
 }
 
+/** Dates found in one line, each with raw text, ISO value when explicit, status and position. */
+export function findDatesInLine(line) {
+  return extractDatesFromLine(String(line || ''));
+}
+
 export default { analyse };

@@ -4,6 +4,7 @@ import { encodeWorkspace, decodeWorkspace } from './workspace.mjs';
 import { detectSignals, findAmounts, findGaps, buildChecklist, buildCountdown, explicitDeadlines, localIsoDay, findContactEmails } from './insights.mjs';
 import { readPdfFile, pageOfLine } from './pdf.mjs';
 import { textKey, titleFrom, summarize, upsert, sortEntries, toCsv } from './shortlist.mjs';
+import { noticeCalendar, submissionRules, obligations, rulesChecklist } from './notice.mjs';
 
 const copy = {
   en: {
@@ -59,8 +60,8 @@ Object.assign(copy.pt, {
 // The fictional example tells a small story: between versions the deadline moved
 // and a perpetual licence clause was added. Both should surface without being hunted for.
 const exampleLines={
-  en:['FICTIONAL EXAMPLE — CREATIVE FUTURES FUND','Applications close on 4 December 2026 at 17:00 Lisbon time.','Eligible applicants: independent creators and small creative teams based in Portugal.','Funding: selected projects may receive up to €5,000 to cover project costs.','Required documents: a short project description, a portfolio and a budget.','Co-financing: not specified here; check the official notice.','Selected works grant the organiser a perpetual, worldwide licence to use them.','Payment will be made in two instalments, the second after final delivery.','Incomplete applications will not be accepted.'],
-  pt:['EXEMPLO FICTÍCIO — FUNDO FUTUROS CRIATIVOS','As candidaturas terminam a 4 de dezembro de 2026 às 17h00, hora de Lisboa.','Elegibilidade: criadores independentes e pequenas equipas criativas sediadas em Portugal.','Apoio: os projetos selecionados podem receber até 5.000 € para custos do projeto.','Documentos necessários: uma descrição breve do projeto, um portefólio e um orçamento.','Cofinanciamento: não especificado neste exemplo; consultar o aviso oficial.','As obras selecionadas concedem à entidade promotora uma licença perpétua e mundial de utilização.','O pagamento será feito em duas prestações, a segunda após a entrega final.','As candidaturas incompletas não serão aceites.']
+  en:['FICTIONAL EXAMPLE — CREATIVE FUTURES FUND','Applications close on 4 December 2026 at 17:00 Lisbon time.','Eligible applicants: independent creators and small creative teams based in Portugal.','Funding: selected projects may receive up to €5,000 to cover project costs.','Required documents: a short project description, a portfolio and a budget.','Co-financing: not specified here; check the official notice.','Selected works grant the organiser a perpetual, worldwide licence to use them.','Payment will be made in two instalments, the second after final delivery.','Incomplete applications will not be accepted.','Questions may be sent until 20 November 2026.','Results will be announced on 18 December 2026.','The project description must not exceed 2 pages; portfolios up to 10 MB in PDF.','Applications must be written in Portuguese or English.','Selected creators must submit a final report within 30 days and credit the fund in all communication.'],
+  pt:['EXEMPLO FICTÍCIO — FUNDO FUTUROS CRIATIVOS','As candidaturas terminam a 4 de dezembro de 2026 às 17h00, hora de Lisboa.','Elegibilidade: criadores independentes e pequenas equipas criativas sediadas em Portugal.','Apoio: os projetos selecionados podem receber até 5.000 € para custos do projeto.','Documentos necessários: uma descrição breve do projeto, um portefólio e um orçamento.','Cofinanciamento: não especificado neste exemplo; consultar o aviso oficial.','As obras selecionadas concedem à entidade promotora uma licença perpétua e mundial de utilização.','O pagamento será feito em duas prestações, a segunda após a entrega final.','As candidaturas incompletas não serão aceites.','As dúvidas podem ser enviadas até 20 de novembro de 2026.','Os resultados serão divulgados a 18 de dezembro de 2026.','A descrição do projeto não pode exceder 2 páginas; portefólios até 10 MB em PDF.','As candidaturas devem ser redigidas em português ou em inglês.','Os criadores selecionados devem entregar um relatório final no prazo de 30 dias e mencionar o fundo em toda a comunicação.']
 };
 copy.en.example=exampleLines.en.join('\n');
 copy.en.previous=exampleLines.en.filter((line)=>!line.startsWith('Selected works')).join('\n').replace('4 December 2026','20 November 2026');
@@ -152,10 +153,31 @@ Object.assign(copy.pt, {
   searchLabel:'Pesquisar no aviso', searchPlaceholder:'Pesquisar no aviso', searchPrev:'Ocorrência anterior', searchNext:'Ocorrência seguinte', searchNone:'Sem resultados'
 });
 
+Object.assign(copy.en, {
+  calendarTitle:'Notice calendar', calendarViewLabel:'Calendar view', calendarAll:'All dates', calendarFuture:'Upcoming only', calendarEmpty:'No explicit dates with a year were found apart from those already shown.', calendarNoFuture:'All dates in the notice have passed.', calendarNote:'Explicit dates only. Laws cited and sign-off dates are left out; dates without a year are never completed.',
+  phases:{opening:'Opening',questions:'Questions',deadline:'Deadline',results:'Results',execution:'Project',payment:'Payment',report:'Report',other:'Other'},
+  rulesTitle:'Submission rules', obligationsTitle:'If selected', rulesViewLabel:'Rules or obligations', rulesEmpty:'No length limits, file formats or language rules detected. Check the application form.', obligationsEmpty:'No obligations for selected applicants detected. Read the notice before accepting.',
+  rulesNote:'Rules are also added to your readiness checklist.', obligationsNote:'What you commit to if the application succeeds.',
+  obligationKinds:{report:'Report',credit:'Credit & publicity',delivery:'Delivery',refund:'Refund',other:'Commitment'},
+  ruleMax:'Maximum', ruleMin:'Minimum', ruleFormats:'Formats', ruleLanguage:'Language', readyRules:'Rules to respect',
+  units:{pages:'pages',characters:'characters',words:'words',minutes:'minutes',seconds:'seconds',images:'images',works:'works',files:'files',megabytes:'MB',gigabytes:'GB'},
+  languages:{pt:'Portuguese',en:'English',es:'Spanish',fr:'French',kea:'Creole'}, navCalendar:'Calendar', navRules:'Rules'
+});
+Object.assign(copy.pt, {
+  calendarTitle:'Calendário do aviso', calendarViewLabel:'Vista do calendário', calendarAll:'Todas as datas', calendarFuture:'Só próximas', calendarEmpty:'Não foram encontradas datas explícitas com ano além das já mostradas.', calendarNoFuture:'Todas as datas do aviso já passaram.', calendarNote:'Só datas explícitas. Leis citadas e datas de assinatura ficam de fora; datas sem ano nunca são completadas.',
+  phases:{opening:'Abertura',questions:'Dúvidas',deadline:'Prazo',results:'Resultados',execution:'Projeto',payment:'Pagamento',report:'Relatório',other:'Outra'},
+  rulesTitle:'Regras de submissão', obligationsTitle:'Se fores selecionado', rulesViewLabel:'Regras ou obrigações', rulesEmpty:'Não foram detetados limites, formatos ou regras de língua. Confirma no formulário de candidatura.', obligationsEmpty:'Não foram detetadas obrigações para selecionados. Lê o aviso antes de aceitar.',
+  rulesNote:'As regras também entram na tua checklist de preparação.', obligationsNote:'O que te compromete se a candidatura for aprovada.',
+  obligationKinds:{report:'Relatório',credit:'Menção e divulgação',delivery:'Entrega',refund:'Devolução',other:'Compromisso'},
+  ruleMax:'Máximo', ruleMin:'Mínimo', ruleFormats:'Formatos', ruleLanguage:'Língua', readyRules:'Regras a cumprir',
+  units:{pages:'páginas',characters:'caracteres',words:'palavras',minutes:'minutos',seconds:'segundos',images:'imagens',works:'obras',files:'ficheiros',megabytes:'MB',gigabytes:'GB'},
+  languages:{pt:'português',en:'inglês',es:'espanhol',fr:'francês',kea:'crioulo'}, navCalendar:'Calendário', navRules:'Regras'
+});
+
 // Interface copy v4: shorter, quieter; explanations live in the "How to read" panel.
 Object.assign(copy.en, {
   eyebrow:'For creators and small teams', heroDescription:'Deadline, risks and open questions from any public call, each tied to its line.',
-  proofDeadlines:'deadlines read correctly in 10 real lusophone notices', proofPrivacy:'requests to a server: text and PDF stay in your browser', proofTests:'automated checks: 55 unit tests and 27 interface checks',
+  proofDeadlines:'deadlines read correctly in 10 real lusophone notices', proofPrivacy:'requests to a server: text and PDF stay in your browser', proofTests:'automated checks: 61 unit tests and 30 interface checks',
   workspaceEyebrow:'Workspace', urlLabel:'Official source link (optional)', urlHint:'Kept as a reference. Not fetched.', compareHint:'Textual differences, not legal conclusions.', pdfPrivacy:'PDFs are read in this browser. Nothing is uploaded.',
   reviewEyebrow:'Review', pointsFound:'excerpts', markedReviewed:'reviewed', openSource:'Original source', boardTitle:'Critical reading',
   infoTitle:'How to read these results', info1:'Every finding quotes the line it came from. Read it as a prompt, not a conclusion.', info2:'Nothing here decides eligibility. Readiness counts what you ticked.', info3:'“Not detected” means not found in the text you supplied, never that it does not exist.', info4:'Milestones are planning suggestions, not dates set by the organiser. Dates are never invented.',
@@ -171,7 +193,7 @@ Object.assign(copy.en, {
 });
 Object.assign(copy.pt, {
   eyebrow:'Para criadores e pequenas equipas', heroDescription:'Prazo, riscos e perguntas em aberto de qualquer chamada pública, cada um ligado à sua linha.',
-  proofDeadlines:'prazos lidos corretamente em 10 avisos reais lusófonos', proofPrivacy:'pedidos a servidores: texto e PDF ficam no teu navegador', proofTests:'verificações automáticas: 55 testes unitários e 27 de interface',
+  proofDeadlines:'prazos lidos corretamente em 10 avisos reais lusófonos', proofPrivacy:'pedidos a servidores: texto e PDF ficam no teu navegador', proofTests:'verificações automáticas: 61 testes unitários e 30 de interface',
   workspaceEyebrow:'Espaço de trabalho', urlLabel:'Ligação à fonte oficial (opcional)', urlHint:'Fica como referência. Não é consultada.', compareHint:'Diferenças de texto, não conclusões jurídicas.', pdfPrivacy:'Os PDFs são lidos neste navegador. Nada é carregado.',
   reviewEyebrow:'Revisão', pointsFound:'excertos', markedReviewed:'revistos', openSource:'Fonte original', boardTitle:'Leitura crítica',
   infoTitle:'Como ler estes resultados', info1:'Cada ponto cita a linha de onde veio. Lê-o como pista, não como conclusão.', info2:'Nada aqui decide elegibilidade. A preparação conta o que marcaste.', info3:'“Não detetado” significa não encontrado no texto fornecido, nunca que não existe.', info4:'Os marcos são sugestões de planeamento, não datas da organização. Nenhuma data é inventada.',
@@ -202,6 +224,8 @@ let shortlist=[];
 let shortlistSort='deadline';
 let searchHits=[];
 let searchIndex=-1;
+let calendarView='all';
+let rulesView='rules';
 
 function setLanguage(next) {
   language=next;
@@ -262,8 +286,12 @@ function attachInsights(result,text) {
   result.signals=detectSignals(text);
   result.amounts=findAmounts(text);
   result.gaps=findGaps(text,items,result.signals,result.amounts);
-  result.checklist=buildChecklist(items);
   result.deadlines=explicitDeadlines(items);
+  result.calendar=noticeCalendar(text,result.deadlines);
+  result.rules=submissionRules(text);
+  result.obligations=obligations(text);
+  // Submission rules join the checklist; their wording is rendered in the current language.
+  result.checklist=[...buildChecklist(items),...rulesChecklist(result.rules,()=>'').map((entry,index)=>({...entry,rule:result.rules[index]}))];
   result.addedLines=new Set((result.changes||[]).filter((change)=>change.kind==='added').map((change)=>change.quote.trim()));
 }
 
@@ -271,9 +299,9 @@ function formatDay(iso,options={day:'numeric',month:'short'}) {
   const locale=language==='pt'?'pt-PT':'en-GB';
   const date=new Date(`${iso}T00:00:00Z`);
   // pt-PT renders a short day and month as "13/11"; spell the month instead ("13 nov").
-  if(options.month==='short' && !options.year) {
+  if(options.month==='short') {
     const month=new Intl.DateTimeFormat(locale,{month:'short',timeZone:'UTC'}).format(date).replace('.','');
-    return `${date.getUTCDate()} ${month}`;
+    return `${date.getUTCDate()} ${month}${options.year?` ${date.getUTCFullYear()}`:''}`;
   }
   return new Intl.DateTimeFormat(locale,{...options,timeZone:'UTC'}).format(date);
 }
@@ -614,6 +642,8 @@ function renderDashboard({state,total,done,percent,signalCount}) {
   box.append(renderAlertChart(signalCount),renderReadinessRing({total,done,percent}));
   renderCountdownCard(state);
   renderDocMap();
+  renderNoticeCalendar();
+  renderRulesCard();
   renderSectionNav();
 }
 
@@ -775,7 +805,83 @@ function renderDocMap() {
   card.append(map,legend);
 }
 
-const NAV_SECTIONS=[['insightBoard','navSummary'],['signalsCard','navAlerts'],['gapsCard','navGaps'],['readinessCard','navReady'],['shortlist','navShortlist'],['lens','navLens'],['evidenceList','navPoints'],['planPanel','navPlan']];
+function quoteRow(className,tagText,quote,line,extra=null) {
+  const row=element('li',className);
+  const head=element('div','row-head');
+  head.append(element('span','row-tag',tagText));
+  if(extra) head.append(extra);
+  const badge=pageBadge(line); if(badge) head.append(badge);
+  row.append(head,element('p','row-quote',quote),lineLink(line));
+  return row;
+}
+
+function renderNoticeCalendar() {
+  const t=copy[language];
+  const card=$('#noticeCalendar');
+  const today=localIsoDay();
+  const all=current.calendar||[];
+  const control=all.length?selectControl('calendarView',t.calendarViewLabel,[['all',t.calendarAll],['future',t.calendarFuture]],calendarView,(value)=>{calendarView=value;renderNoticeCalendar();}):null;
+  cardHeader(card,'calendar-title',t.calendarTitle,all.length?String(all.length):'',control);
+  const events=calendarView==='future'?all.filter((event)=>(event.endIso||event.iso)>=today):all;
+  if(!events.length){ card.append(element('p','card-empty',all.length?t.calendarNoFuture:t.calendarEmpty)); return; }
+  const first=[...events.map((e)=>e.iso),today].sort()[0];
+  const last=[...events.map((e)=>e.endIso||e.iso),today].sort().at(-1);
+  const span=Math.max(1,dayDiff(first,last));
+  // Drawn at the card's scale so labels stay readable on phones.
+  const W=matchMedia('(max-width:700px)').matches?340:640,H=86,pad=14,y=50;
+  const x=(iso)=>pad+(W-2*pad)*Math.min(1,Math.max(0,dayDiff(first,iso)/span));
+  const chart=svg('svg',{viewBox:`0 0 ${W} ${H}`,class:'cal-chart',role:'img','aria-label':events.map((e)=>`${t.phases[e.phase]} ${e.iso}`).join(', ')});
+  chart.append(svg('line',{x1:pad,x2:W-pad,y1:y,y2:y,class:'tl-track'}));
+  // Month ticks
+  const start=new Date(`${first}T00:00:00Z`); start.setUTCDate(1);
+  for(let d=new Date(start);d.toISOString().slice(0,10)<=last;d.setUTCMonth(d.getUTCMonth()+1)){
+    const iso=d.toISOString().slice(0,10); if(iso<first) continue;
+    const px=x(iso); chart.append(svg('line',{x1:px,x2:px,y1:y-4,y2:y+4,class:'cal-tick'}));
+    chart.append(svgText(px,H-6,new Intl.DateTimeFormat(language==='pt'?'pt-PT':'en-GB',{month:'short',timeZone:'UTC'}).format(d).replace('.',''),'cal-month','middle'));
+  }
+  let lane=0;
+  for(const event of events){
+    const cls=`cal-${event.phase}`;
+    if(event.endIso) chart.append(svg('rect',{x:x(event.iso),y:y-3,width:Math.max(3,x(event.endIso)-x(event.iso)),height:6,rx:3,class:`cal-period ${cls}`}));
+    const px=x(event.endIso||event.iso);
+    chart.append(svg('circle',{cx:px,cy:y,r:event.phase==='deadline'?6:4,class:`cal-dot ${cls}`}));
+    lane=(lane+1)%2;
+    const anchor=px<70?'start':px>W-70?'end':'middle';
+    chart.append(svgText(px,lane?y-14:y-26,t.phases[event.phase],`cal-label ${cls}`,anchor));
+  }
+  if(today>=first && today<=last){ const px=x(today); chart.append(svg('line',{x1:px,x2:px,y1:y-34,y2:y+10,class:'cal-today'})); }
+  card.append(chart);
+  const list=element('ul','row-list');
+  for(const event of events){
+    const date=element('span','row-date',`${formatDay(event.iso,{day:'numeric',month:'short',year:'numeric'})}${event.endIso?` → ${formatDay(event.endIso,{day:'numeric',month:'short',year:'numeric'})}`:''}`);
+    const row=quoteRow(`row cal-row cal-${event.phase}${(event.endIso||event.iso)<today?' is-past':''}`,t.phases[event.phase],event.quote,event.line,date);
+    list.append(row);
+  }
+  card.append(list,element('p','card-foot',t.calendarNote));
+}
+
+function renderRulesCard() {
+  const t=copy[language];
+  const card=$('#rulesCard');
+  const rules=current.rules||[], items=current.obligations||[];
+  const control=selectControl('rulesView',t.rulesViewLabel,[['rules',`${t.rulesTitle} (${rules.length})`],['obligations',`${t.obligationsTitle} (${items.length})`]],rulesView,(value)=>{rulesView=value;renderRulesCard();});
+  cardHeader(card,'rules-title',rulesView==='rules'?t.rulesTitle:t.obligationsTitle,'',control);
+  const list=element('ul','row-list');
+  if(rulesView==='rules'){
+    if(!rules.length){ card.append(element('p','card-empty',t.rulesEmpty)); return; }
+    // Several rules from one line ("2 pages; up to 10 MB in PDF") share one row and one quote.
+    const byLine=new Map();
+    for(const rule of rules){ if(!byLine.has(rule.line)) byLine.set(rule.line,[]); byLine.get(rule.line).push(rule); }
+    for(const [line,group] of byLine) list.append(quoteRow('row rule-row',group.map(describeRule).join(' · '),group[0].quote,line));
+    card.append(list,element('p','card-foot',t.rulesNote));
+  } else {
+    if(!items.length){ card.append(element('p','card-empty',t.obligationsEmpty)); return; }
+    for(const item of items) list.append(quoteRow(`row obligation-row obligation-${item.kind}`,t.obligationKinds[item.kind],item.quote,item.line));
+    card.append(list,element('p','card-foot',t.obligationsNote));
+  }
+}
+
+const NAV_SECTIONS=[['insightBoard','navSummary'],['noticeCalendar','navCalendar'],['rulesCard','navRules'],['signalsCard','navAlerts'],['gapsCard','navGaps'],['readinessCard','navReady'],['shortlist','navShortlist'],['lens','navLens'],['evidenceList','navPoints'],['planPanel','navPlan']];
 let navObserver=null;
 function renderSectionNav() {
   const t=copy[language];
@@ -805,6 +911,14 @@ function renderSectionNav() {
   navObserver={disconnect:()=>removeEventListener('scroll',onScroll)};
   update();
 }
+
+function describeRule(rule) {
+  const t=copy[language];
+  if(rule.kind==='limit') return `${rule.bound==='min'?t.ruleMin:t.ruleMax} ${new Intl.NumberFormat(language==='pt'?'pt-PT':'en-GB').format(rule.value)} ${t.units[rule.unit]}`;
+  if(rule.kind==='format') return `${t.ruleFormats}: ${rule.formats.join(', ')}`;
+  return `${t.ruleLanguage}: ${rule.languages.map((code)=>t.languages[code]||code).join(', ')}`;
+}
+function entryText(entry) { return entry.kind==='rule'?describeRule(entry.rule):entry.text; }
 
 function currentSummary() {
   const t=copy[language];
@@ -870,7 +984,7 @@ function renderBoard() {
     const meter=element('div','ready-meter'); meter.setAttribute('role','progressbar'); meter.setAttribute('aria-valuemin','0'); meter.setAttribute('aria-valuemax','100'); meter.setAttribute('aria-valuenow',String(percent)); meter.setAttribute('aria-label',t.readyTitle);
     const fill=element('span'); fill.style.width=`${percent}%`; meter.append(fill);
     readiness.append(meter);
-    for(const [kind,label] of [['document',t.readyDocuments],['condition',t.readyConditions]]){
+    for(const [kind,label] of [['document',t.readyDocuments],['rule',t.readyRules],['condition',t.readyConditions]]){
       const entries=current.checklist.filter((entry)=>entry.kind===kind);
       if(!entries.length) continue;
       readiness.append(element('p','ready-group',label));
@@ -879,7 +993,7 @@ function renderBoard() {
         const row=element('li','ready-item');
         const box=element('input'); box.type='checkbox'; box.id=`ready-${entry.id}`; box.checked=ready.has(entry.id);
         box.addEventListener('change',()=>{if(box.checked) ready.add(entry.id); else ready.delete(entry.id); renderBoard(); document.getElementById(`ready-${entry.id}`)?.focus();});
-        const label=element('label','',entry.text); label.htmlFor=box.id;
+        const label=element('label','',entryText(entry)); label.htmlFor=box.id;
         row.append(box,label); group.append(row);
       }
       readiness.append(group);
@@ -999,8 +1113,18 @@ function briefText() {
   for(const gap of current.gaps) lines.push(`- ${t.gapNames[gap]}: ${t.gapQuestions[gap]}`);
   lines.push('',t.briefChecklist,'');
   if(!current.checklist.length) lines.push(t.briefNone);
-  for(const entry of current.checklist) lines.push(`[${ready.has(entry.id)?'x':' '}] ${entry.text}`);
+  for(const entry of current.checklist) lines.push(`[${ready.has(entry.id)?'x':' '}] ${entryText(entry)}`);
   lines.push(t.readyNote,'');
+  lines.push('',t.calendarTitle,'');
+  if(!current.calendar.length) lines.push(t.briefNone);
+  for(const event of current.calendar) lines.push(`- ${event.iso}${event.endIso?` → ${event.endIso}`:''} · ${t.phases[event.phase]}: ${event.quote}`);
+  lines.push('',t.rulesTitle,'');
+  if(!current.rules.length) lines.push(t.briefNone);
+  for(const rule of current.rules) lines.push(`- ${describeRule(rule)} — ${rule.quote}`);
+  lines.push('',t.obligationsTitle,'');
+  if(!current.obligations.length) lines.push(t.briefNone);
+  for(const item of current.obligations) lines.push(`- [${t.obligationKinds[item.kind]}] ${item.quote}`);
+  lines.push('');
   const items=Array.isArray(current.items)?current.items:[];
   if(current.itemsTruncated) lines.push(t.partialEvidence,'');
   if(!items.length) lines.push(t.noCandidates);

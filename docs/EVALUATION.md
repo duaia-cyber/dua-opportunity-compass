@@ -67,6 +67,30 @@ False alerts found in the first run and removed: "comparticipação" (the funder
 
 **Recall was not measured.** Nobody annotated every clause in the corpus, so the share of risky clauses the engine *missed* is unknown. One notice (Campos do Jordão) produced no alert at all, which may be a miss.
 
+## Notice calendar, submission rules and obligations
+
+A second pass on the same 10 notices measured the three newer readers. A person read every result.
+
+| Reader | Found | Judged correct | Notes |
+|---|---|---|---|
+| Notice calendar (explicit dates by phase) | 23 dates | 22 with the right phase | One line broken by the PDF ("25 de junho de 2026.") was labelled *other* instead of *results*. |
+| Submission rules (limits, formats, language) | 32 rules | 27 apply to the application | 5 describe the final product or expense documents (Funarte book and catalogue sizes, CCDR expense PDFs) rather than what to submit. |
+| Obligations if selected | 41 clauses | about 34 bind a selected applicant | About 7 are application or process rules (e.g. how to describe a team, how the committee redistributes funds). |
+
+Fixes made during this pass, each with a unit test:
+
+- Laws cited (the RGPD regulation, Lei n.º, Portaria) and sign-off lines ("Cidade da Praia, aos 4 de fevereiro de 2026") are left out of the calendar.
+- "reportam" no longer reads as *report*, and "não residentes" no longer reads as a selected applicant.
+- "presente regulamento" no longer reads as *present*.
+- The funder's own duty to protect personal data is not presented as the artist's obligation.
+- Several limits on one line ("2 pages; up to 10 MB") are all read.
+- Thousands written with a comma ("1,000 words") are read correctly.
+- Every language named next to "written in" counts ("in Portuguese or English").
+- A number far from a limit word ("até ao fim do ano publica 3 páginas") is ignored.
+- A new *Questions* phase holds the date for clarification requests.
+
+Recall was not measured for these readers either.
+
 ## Other observations
 
 - Amounts were quoted in 9 of 10 notices (€, R$, USD). The Cabo Verde call states no amount, and the engine reports that as a gap.

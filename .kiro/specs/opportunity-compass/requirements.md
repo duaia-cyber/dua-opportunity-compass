@@ -90,6 +90,12 @@ A deterministic board shown above the excerpt list. Every element is either a qu
 - **Calendar with milestones**: one .ics file with all-day entries for the remaining suggested milestones (labelled SUGGESTED) and the deadline day from the notice. Available only after the user marks the deadline excerpt reviewed, and never for a passed date.
 - **E-mail draft**: a `mailto:` link that opens the user's own e-mail app with the questions from the gaps. If exactly one e-mail address appears in the text it is used as recipient; otherwise the recipient is left empty. The page sends nothing.
 
+### 16. Notice Calendar, Submission Rules and Obligations
+- **Calendar**: every explicit date (with a year) is placed on a timeline and classified by its line as opening, questions, deadline (the countdown date, and the same date in another sentence about applying), results, project/execution, payment, report or other. Two explicit dates joined by a range word form a period. Lines citing laws (Lei, Decreto, Portaria, Regulamento (UE), RGPD, n.º) and sign-off lines ("Place, date") are left out. Dates without a year are never completed. A dropdown shows all dates or only upcoming ones.
+- **Submission rules**: limits on pages, characters, words, minutes, seconds, images, works, files, MB and GB, read only when the number closely follows a limit word (máximo, até, up to, no more than, não pode exceder, mínimo, at least…), with max/min; file formats on lines about files or submission; the application language only when a writing or submitting verb is present, listing every language named. Rules join the readiness checklist with ids need_<line>_101 onwards.
+- **Obligations if selected**: lines with an obligation verb and a selected/beneficiary subject, classified as refund, report, credit and publicity, delivery or other commitment. Without a selected subject only refund, report and credit clauses are kept. Data-protection clauses are excluded.
+- The brief includes the calendar, the rules and the obligations. All three are prompts to read the line, not legal advice.
+
 ### 13. Shortlist
 - After an analysis the user may add the call to a shortlist kept in memory for this tab only (no browser storage, nothing sent). Re-adding the same text updates its row; at most 30 calls.
 - Each row: title (first line of the text, without a fictional-example prefix), deadline or its state (relative, unclear, not found), days left, first amount quoted, number of firm alerts, number of open questions and readiness. Readiness of the current call follows the checklist live.

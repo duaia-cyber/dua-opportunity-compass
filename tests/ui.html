@@ -156,6 +156,31 @@ await check('Map filter highlights only matching lines', async () => {
   return `alerts ${alerts}, deadline ${deadlines}`;
 });
 
+await check('Notice calendar lists questions, deadline and results by phase', async () => {
+  const phases = $$('.cal-row .row-tag').map((tag) => tag.textContent);
+  assert(phases.join('|') === 'Questions|Deadline|Results', `phases ${phases.join('|')}`);
+  setSelect('calendarView', 'future');
+  assert($$('.cal-row').length >= 1, 'future view empty');
+  setSelect('calendarView', 'all');
+  assert($$('.cal-row').length === 3, 'all view not restored');
+  return phases.join(' → ');
+});
+
+await check('Rules dropdown switches between submission rules and obligations', async () => {
+  const rules = $$('.rule-row .row-tag').map((tag) => tag.textContent).join(' | ');
+  assert(rules.includes('2 pages') && rules.includes('10 MB') && rules.includes('PDF') && rules.includes('English'), `rules ${rules}`);
+  setSelect('rulesView', 'obligations');
+  assert($$('.obligation-row').length >= 1, 'no obligations');
+  setSelect('rulesView', 'rules');
+  return rules;
+});
+
+await check('Submission rules join the readiness checklist', async () => {
+  const labels = $$('.ready-item label').map((label) => label.textContent);
+  assert(labels.includes('Maximum 2 pages') && labels.includes('Formats: PDF'), `checklist ${labels.join(' | ')}`);
+  return `${labels.length} checklist entries`;
+});
+
 await check('Clicking the map opens the lens on a line', async () => {
   const map = $('.map-svg');
   const box = map.getBoundingClientRect();
@@ -218,7 +243,7 @@ await check('E-mail draft is a mailto link with the questions', async () => {
 await check('Brief download contains plan, alerts, gaps, checklist and note', async () => {
   $('#exportButton').click();
   const brief = await lastDownload('Opportunity review brief');
-  for (const part of ['Countdown', 'Alerts for creative work', 'What the text does not say', 'Readiness checklist', '[x]', 'Ask if PDF portfolios']) assert(brief.includes(part), `brief missing ${part}`);
+  for (const part of ['Countdown', 'Alerts for creative work', 'What the text does not say', 'Readiness checklist', '[x]', 'Ask if PDF portfolios', 'Notice calendar', 'Submission rules', 'Maximum 10 MB', 'If selected']) assert(brief.includes(part), `brief missing ${part}`);
 });
 
 await check('Print opens the print dialog', async () => {
