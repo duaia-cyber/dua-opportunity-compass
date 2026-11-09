@@ -67,7 +67,8 @@ async function until(fn, message, timeout = 6000) {
   throw new Error(`Timed out: ${message}`);
 }
 
-await new Promise((resolve) => frame.addEventListener('load', resolve, { once: true }));
+// The iframe can finish before this module starts; polling avoids missing its load event.
+await until(() => frame.contentWindow?.location.pathname.endsWith('/index.html') && frame.contentDocument?.readyState === 'complete', 'app frame loaded');
 const win = frame.contentWindow;
 const doc = frame.contentDocument;
 const $ = (selector) => doc.querySelector(selector);
@@ -354,6 +355,36 @@ await check('Shortlist adds, sorts, exports and removes calls', async () => {
 await check('Version comparison lists added and removed lines', async () => {
   assert(!$('#changesSection').hidden, 'changes hidden');
   assert($$('.change-item').length >= 2, 'no changes listed');
+});
+
+await check('Change topics filter added and removed lines without changing quotes', async () => {
+  const oldRights = 'Selected works grant a perpetual worldwide licence to the organiser.';
+  const unlabelled = 'This is an unrelated line about the venue.';
+  $('#sourceText').value = `Applications close on 4 December 2026.\n${unlabelled}`;
+  $('#sourceText').dispatchEvent(new win.Event('input', { bubbles: true }));
+  $('#previousText').value = oldRights;
+  $('#previousText').dispatchEvent(new win.Event('input', { bubbles: true }));
+  $('#sourceForm button[type=submit]').click();
+  const rows = $$('.change-item');
+  assert(rows.length === 3, `expected three literal changes, got ${rows.length}`);
+  const removed = rows.find((row) => row.querySelector('b')?.textContent === 'Removed text');
+  assert(removed && removed.querySelector('span')?.textContent === oldRights, 'removed quote changed');
+  assert(removed.querySelector('.change-signal')?.textContent.includes('Rights'), 'removed rights topic missing');
+  const select = $('#changesFilter');
+  assert(select && select.getBoundingClientRect().height >= 44, 'filter missing or too small');
+  select.focus();
+  assert(doc.activeElement === select, 'filter is not keyboard focusable');
+  setSelect('changesFilter', 'labelled');
+  assert($('#changesFilter').value === 'labelled', 'filter state lost');
+  assert($$('.change-item').length === 2, 'unlabelled line was not filtered');
+  assert(!$$('.change-item').some((row) => row.textContent.includes(unlabelled)), 'unlabelled line is visible');
+  $('[data-lang=pt]').click();
+  assert($('#changesFilter').value === 'labelled', 'filter state lost on language change');
+  $('[data-lang=en]').click();
+  setSelect('changesFilter', 'all');
+  assert($$('.change-item').length === 3, 'all changes were not restored');
+  $('#demoButton').click();
+  return 'removed rights · exact quote · filter · language · keyboard focus';
 });
 
 await check('Section navigation opens and scrolls to each section', async () => {

@@ -22,11 +22,17 @@
         <p class="hero-description" data-i18n="heroDescription">Deadline, risks and open questions from any public call, each tied to its line.</p>
         <div class="hero-actions"><a class="button button-light" href="#workspace" data-i18n="startReview">Review an opportunity</a><button class="button button-quiet" type="button" id="demoHero" data-i18n="tryExample">Try the example</button></div>
       </div>
-      <dl class="hero-proof">
-        <div><dt>10/10</dt><dd data-i18n="proofDeadlines">deadlines read correctly in 10 real lusophone notices</dd></div>
-        <div><dt>0</dt><dd data-i18n="proofPrivacy">requests to a server: text and PDF stay in your browser</dd></div>
-        <div><dt>108</dt><dd data-i18n="proofTests">automated checks: 74 unit and property tests, 34 interface checks</dd></div>
-      </dl>
+      <aside class="hero-preview" aria-labelledby="preview-title">
+        <div class="preview-top"><span class="preview-badge"><i aria-hidden="true"></i><span data-i18n="previewBadge">Fictional example</span></span><span class="preview-brand">DUA / LAB</span></div>
+        <p class="preview-overline" data-i18n="previewOverline">Opportunity snapshot</p>
+        <h2 id="preview-title" data-i18n="previewTitle">Creative Futures Fund</h2>
+        <div class="preview-rows">
+          <button type="button" class="preview-row" data-preview-target="snapshot"><span class="preview-icon" aria-hidden="true">01</span><span class="preview-row-copy"><strong data-i18n="previewDeadline">Deadline</strong><span data-i18n="previewDate">4 December 2026</span></span><span class="preview-arrow" aria-hidden="true">↗</span></button>
+          <button type="button" class="preview-row" data-preview-target="signalsCard"><span class="preview-icon" aria-hidden="true">02</span><span class="preview-row-copy"><strong data-i18n="previewRights">Rights &amp; licence</strong><span data-i18n="previewEvidence">Read the original clause</span></span><span class="preview-arrow" aria-hidden="true">↗</span></button>
+          <button type="button" class="preview-row" data-preview-target="planPanel"><span class="preview-icon" aria-hidden="true">03</span><span class="preview-row-copy"><strong data-i18n="previewPlan">Your next steps</strong><span data-i18n="previewPlanNote">Review and prepare a plan</span></span><span class="preview-arrow" aria-hidden="true">↗</span></button>
+        </div>
+        <p class="preview-foot" data-i18n="previewFoot">From source to action</p>
+      </aside>
     </section>
 
     <section class="workspace shell" id="workspace" aria-labelledby="workspace-title">

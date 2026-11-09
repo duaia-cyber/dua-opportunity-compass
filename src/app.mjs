@@ -5,6 +5,7 @@ import { detectSignals, findAmounts, findGaps, buildChecklist, buildCountdown, e
 import { readPdfFile, pageOfLine } from './pdf.mjs';
 import { textKey, titleFrom, summarize, upsert, sortEntries, toCsv } from './shortlist.mjs';
 import { noticeCalendar, submissionRules, obligations, rulesChecklist } from './notice.mjs';
+import { labelChanges } from './change-review.mjs';
 
 const copy = {
   en: {
@@ -21,6 +22,11 @@ Object.assign(copy.en, {
   changesHint:'Added and removed lines',
   changesNote:'Line order is not compared. Different wording does not necessarily mean a change in rules.',
   noChanges:'No added or removed lines found. Line order is not compared.',
+  changesFilterLabel:'Lines',
+  changesFilterAll:'All changes',
+  changesFilterLabelled:'Lines with topics',
+  changesCaveat:'Topics are tentative and incomplete; unlabelled lines may also matter.',
+  changesNoTopics:'No lines with matching topics. Review all changes.',
   privacyNote:'Your text stays in this browser until you reload. This prototype does not send it to a server.',
   partialEvidence:'Only the first 200 matching excerpts are shown. Review the complete source.',
   partialChanges:'Only the first 200 text differences are shown. Compare the complete sources.',
@@ -42,6 +48,11 @@ Object.assign(copy.pt, {
   changesHint:'Linhas acrescentadas e removidas',
   changesNote:'A ordem das linhas não é comparada. Uma alteração de palavras não significa necessariamente uma alteração das regras.',
   noChanges:'Não foram encontradas linhas acrescentadas ou removidas. A ordem não é comparada.',
+  changesFilterLabel:'Linhas',
+  changesFilterAll:'Todas as alterações',
+  changesFilterLabelled:'Linhas com tópicos',
+  changesCaveat:'Os tópicos são sugestões incompletas; as outras linhas também podem ser importantes.',
+  changesNoTopics:'Não foram encontrados tópicos. Revê todas as alterações.',
   privacyNote:'O texto fica neste navegador até recarregares a página. Este protótipo não o envia para um servidor.',
   partialEvidence:'Só são apresentados os primeiros 200 excertos encontrados. Revê a fonte completa.',
   partialChanges:'Só são apresentadas as primeiras 200 diferenças. Compara as fontes completas.',
@@ -176,11 +187,11 @@ Object.assign(copy.pt, {
 
 // Interface copy v4: shorter, quieter; explanations live in the "How to read" panel.
 Object.assign(copy.en, {
-  eyebrow:'For creators and small teams', heroDescription:'Deadline, risks and open questions from any public call, each tied to its line.',
-  proofDeadlines:'deadlines read correctly in 10 real lusophone notices', proofPrivacy:'requests to a server: text and PDF stay in your browser', proofTests:'automated checks: 74 unit and property tests, 34 interface checks',
+  eyebrow:'For creators and small teams', heroDescription:'Turn a public call into a clearer plan. Review the source, spot clauses and prepare your next steps.',
+  previewBadge:'Fictional example', previewOverline:'Opportunity snapshot', previewTitle:'Creative Futures Fund', previewDeadline:'Deadline', previewDate:'4 December 2026', previewRights:'Rights & licence', previewEvidence:'Read the original clause', previewPlan:'Your next steps', previewPlanNote:'Review and prepare a plan', previewFoot:'From source to action',
   workspaceEyebrow:'Workspace', urlLabel:'Official source link (optional)', urlHint:'Kept as a reference. Not fetched.', compareHint:'Textual differences, not legal conclusions.', pdfPrivacy:'PDFs are read in this browser. Nothing is uploaded.',
   reviewEyebrow:'Review', pointsFound:'excerpts', markedReviewed:'reviewed', openSource:'Original source', boardTitle:'Critical reading',
-  infoTitle:'How to read these results', info1:'Every finding quotes the line it came from. Read it as a prompt, not a conclusion.', info2:'Nothing here decides eligibility. Readiness counts what you ticked.', info3:'“Not detected” means not found in the text you supplied, never that it does not exist.', info4:'Milestones are planning suggestions, not dates set by the organiser. Dates are never invented.',
+  infoTitle:'How to read these results', info1:'Every finding quotes the line it came from. Read it as a prompt, not a conclusion.', info2:'Nothing here decides eligibility. Readiness counts what you ticked.', info3:'“Not detected” means not found in the text you supplied, never that it does not exist.', info4:'Milestones are planning suggestions, not dates set by the organiser. Check the original deadline.',
   evidenceTitle:'Excerpts', evidenceHint:'Mark each one reviewed', lensHint:'Full text, line by line', noEvidence:'No matching excerpts. Check the source manually; absence here does not mean a requirement does not exist.',
   planStep:'Plan', planInitial:'Review in progress', planSmall:'Nothing is sent. Files are created on this device.',
   connectionLabel:'DUA Lab', connectionDescription:'An independent prototype exploring a future companion to DUA Radar Cultural. Not connected to DUA accounts or data.', footerText:'Independent Kiroween prototype', backToTop:'Back to top',
@@ -192,11 +203,11 @@ Object.assign(copy.en, {
   signalsTitle:'Alerts for creative work', gapsTitle:'Questions for the organiser', readyTitle:'Readiness checklist'
 });
 Object.assign(copy.pt, {
-  eyebrow:'Para criadores e pequenas equipas', heroDescription:'Prazo, riscos e perguntas em aberto de qualquer chamada pública, cada um ligado à sua linha.',
-  proofDeadlines:'prazos lidos corretamente em 10 avisos reais lusófonos', proofPrivacy:'pedidos a servidores: texto e PDF ficam no teu navegador', proofTests:'verificações automáticas: 74 testes unitários e de propriedades, 34 de interface',
+  eyebrow:'Para criadores e pequenas equipas', heroDescription:'Transforma uma chamada pública num plano mais claro. Revê a fonte, identifica cláusulas e prepara os próximos passos.',
+  previewBadge:'Exemplo fictício', previewOverline:'Resumo da oportunidade', previewTitle:'Fundo Futuros Criativos', previewDeadline:'Prazo', previewDate:'4 de dezembro de 2026', previewRights:'Direitos e licença', previewEvidence:'Ler a cláusula original', previewPlan:'Próximos passos', previewPlanNote:'Rever e preparar um plano', previewFoot:'Da fonte à ação',
   workspaceEyebrow:'Espaço de trabalho', urlLabel:'Ligação à fonte oficial (opcional)', urlHint:'Fica como referência. Não é consultada.', compareHint:'Diferenças de texto, não conclusões jurídicas.', pdfPrivacy:'Os PDFs são lidos neste navegador. Nada é carregado.',
   reviewEyebrow:'Revisão', pointsFound:'excertos', markedReviewed:'revistos', openSource:'Fonte original', boardTitle:'Leitura crítica',
-  infoTitle:'Como ler estes resultados', info1:'Cada ponto cita a linha de onde veio. Lê-o como pista, não como conclusão.', info2:'Nada aqui decide elegibilidade. A preparação conta o que marcaste.', info3:'“Não detetado” significa não encontrado no texto fornecido, nunca que não existe.', info4:'Os marcos são sugestões de planeamento, não datas da organização. Nenhuma data é inventada.',
+  infoTitle:'Como ler estes resultados', info1:'Cada ponto cita a linha de onde veio. Lê-o como pista, não como conclusão.', info2:'Nada aqui decide elegibilidade. A preparação conta o que marcaste.', info3:'“Não detetado” significa não encontrado no texto fornecido, nunca que não existe.', info4:'Os marcos são sugestões de planeamento, não datas da organização. Confirma o prazo original.',
   evidenceTitle:'Excertos', evidenceHint:'Marca cada um como revisto', lensHint:'Texto completo, linha a linha', noEvidence:'Sem excertos correspondentes. Confirma a fonte manualmente; a ausência aqui não significa que o requisito não exista.',
   planStep:'Plano', planInitial:'Revisão em curso', planSmall:'Nada é enviado. Os ficheiros são criados neste dispositivo.',
   connectionLabel:'DUA Lab', connectionDescription:'Protótipo independente que explora um futuro complemento ao Radar Cultural da DUA. Sem ligação a contas ou dados DUA.', footerText:'Protótipo independente Kiroween', backToTop:'Voltar ao início',
@@ -213,12 +224,12 @@ Object.assign(copy.pt,{tooLong:'Este texto tem mais de 150.000 caracteres. Divid
 
 // Copy v5: one name per idea ("Questions" = questions for the organiser; "Export" = the files panel).
 Object.assign(copy.en, {
-  navPlan:'Export', planStep:'Export', confirmDeadline:'Confirm deadline',
+  navPlan:'Export', planStep:'Export', confirmDeadline:'Confirm deadline', heroCloses:'Date to verify:',
   planCalendarLocked:'Confirm the deadline (in the summary card or its excerpt) to unlock the calendar.'
 });
 copy.en.phases={...copy.en.phases,questions:'Clarifications'};
 Object.assign(copy.pt, {
-  navPlan:'Exportar', planStep:'Exportar', confirmDeadline:'Confirmar prazo',
+  navPlan:'Exportar', planStep:'Exportar', confirmDeadline:'Confirmar prazo', heroCloses:'Data a verificar:',
   planCalendarLocked:'Confirma o prazo (no cartão de resumo ou no excerto) para desbloquear o calendário.'
 });
 copy.pt.phases={...copy.pt.phases,questions:'Esclarecimentos'};
@@ -243,6 +254,7 @@ let searchHits=[];
 let searchIndex=-1;
 let calendarView='all';
 let rulesView='rules';
+let changesFilter='all';
 
 function setLanguage(next) {
   language=next;
@@ -271,7 +283,7 @@ function element(tag, className, text) {
 
 // Hides stale results. Review state (reviewed, notes, ready) is kept and reused if the same text is analysed again.
 function clearResults() {
-  current=null; nodes.results.hidden=true;
+  current=null; nodes.results.hidden=true; changesFilter='all';
 }
 
 // Keeps review state for the same text (filtered to ids that still exist); starts fresh for a different text.
@@ -302,8 +314,8 @@ function runAnalysis(event) {
   attachInsights(current, nodes.text.value);
   current.pages=validPageMap();
   restoreState(textKey(nodes.text.value));
-  renderResults();
   nodes.results.hidden=false;
+  renderResults();
   nodes.results.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
   nodes.results.focus({preventScroll:true});
 }
@@ -1077,6 +1089,64 @@ function renderBoard() {
   }
 }
 
+function renderChanges() {
+  const t=copy[language];
+  nodes.changes.replaceChildren();
+  const changes=Array.isArray(current.changes)?current.changes:[];
+  if(!changes.length) {
+    nodes.changes.append(element('p','subtle',t.noChanges));
+    return;
+  }
+
+  // Label changes with categories and signals
+  let labelled=[];
+  try {
+    labelled=labelChanges(changes);
+  } catch(e) {
+    // Fallback if labelling fails
+    labelled=changes.map((change)=>({...change, categories:[], signalKinds:[]}));
+  }
+
+  // Add filter control
+  const filterWrap=element('div','changes-filter');
+  const filter=selectControl('changesFilter',t.changesFilterLabel,[['all',t.changesFilterAll],['labelled',t.changesFilterLabelled]],changesFilter,(value)=>{changesFilter=value;renderChanges();});
+  filterWrap.append(filter);
+  const caveat=element('p','subtle',t.changesCaveat);
+  filterWrap.append(caveat);
+  nodes.changes.append(filterWrap);
+
+  // Render changes with filter
+  const list=element('div','changes-list');
+  labelled.forEach((change)=>{
+    const hasLabel=change.categories.length>0 || change.signalKinds.length>0;
+    if(changesFilter==='labelled' && !hasLabel) return;
+
+    const row=element('div','change-item');
+    const label=element('b','',change.kind==='added'?t.added:t.removed);
+    const quote=element('span','');
+    quote.textContent=change.quote;
+    row.append(label,quote);
+
+    // Add badges for categories and signals
+    if(hasLabel) {
+      const tags=element('div','change-tags');
+      for(const cat of change.categories) {
+        const badge=element('span','change-badge change-category',t.categories[cat]||cat);
+        tags.append(badge);
+      }
+      for(const sig of change.signalKinds) {
+        const badge=element('span','change-badge change-signal',t.signalNames[sig]||sig);
+        tags.append(badge);
+      }
+      row.append(tags);
+    }
+
+    list.append(row);
+  });
+  if(!list.childElementCount) list.append(element('p','subtle',t.changesNoTopics));
+  nodes.changes.append(list);
+}
+
 function renderResults() {
   if(!current) return;
   const t=copy[language];
@@ -1150,13 +1220,7 @@ function renderResults() {
   if(hasPrevious) {
     $('#partialChanges').hidden=!current.changesTruncated;
     $('#partialChanges').textContent=t.partialChanges;
-    const changes=Array.isArray(current.changes)?current.changes:[];
-    if(!changes.length) nodes.changes.append(element('p','subtle',t.noChanges));
-    changes.forEach((change)=>{
-      const row=element('div','change-item');
-      row.append(element('b','',change.kind==='added'?t.added:t.removed),element('span','',change.quote));
-      nodes.changes.append(row);
-    });
+    renderChanges();
   }
   if(current.sourceUrl) {nodes.link.href=current.sourceUrl;nodes.link.hidden=false;} else {nodes.link.hidden=true;nodes.link.removeAttribute('href');}
   renderBoard();
@@ -1277,6 +1341,14 @@ $('#planCalendarButton').addEventListener('click',()=>{
 document.querySelectorAll('[data-lang]').forEach((button)=>button.addEventListener('click',()=>setLanguage(button.dataset.lang)));
 $('#demoHero').addEventListener('click',loadSample);
 $('#demoButton').addEventListener('click',loadSample);
+document.querySelectorAll('[data-preview-target]').forEach((button)=>button.addEventListener('click',()=>{
+  loadSample();
+  const target=document.getElementById(button.dataset.previewTarget);
+  if(!target || !current) return;
+  if(target.tagName==='DETAILS') target.open=true;
+  target.scrollIntoView({behavior:motion(),block:'start'});
+  nodes.announcement.textContent=copy[language].demoWarning;
+}));
 $('#saveWorkspace').addEventListener('click',()=>{
   nodes.error.textContent='';
   if(!nodes.text.value.trim()) {nodes.error.textContent=copy[language].enterText;nodes.text.focus();return;}
@@ -1309,7 +1381,7 @@ $('#workspaceFile').addEventListener('change',async(event)=>{
     const validReady=new Set(current.checklist.map(entry=>entry.id));
     ready=new Set(data.ready.filter(id=>validReady.has(id)));
     stateKey=textKey(data.text);
-    renderResults();nodes.results.hidden=false;
+    nodes.results.hidden=false;renderResults();
     nodes.announcement.textContent=copy[language].planInitial;
   } catch {nodes.error.textContent=copy[language].workspaceError;}
   finally {event.target.value='';}

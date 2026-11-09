@@ -197,7 +197,8 @@ test('property: CSV never lets a cell start a spreadsheet formula', () => {
 
 test('property: working copies round-trip any text exactly', () => {
   for (let run = 0; run < RUNS; run++) {
-    const text = notice() + pick(['', '\u0000', ' ', '😀', '"\\']);
+    const text = notice() + pick(['', '\u0000', '
+', '😀', '"\\']);
     const copy = decodeWorkspace(encodeWorkspace({ text, previousText: notice(), url: '', reviewed: [], notes: {} }));
     assert.equal(copy.text, text);
   }
@@ -222,5 +223,31 @@ test('property: shortlist titles are short and keys stable; sorting keeps every 
       assert.equal(sorted.length, entries.length);
       assert.deepEqual(new Set(sorted.map((e) => e.key)), new Set(entries.map((e) => e.key)));
     }
+  }
+});
+
+test('property: law-citation filter preserves deadlines before Lei n.º markers and rejects dates after', () => {
+  for (let run = 0; run < RUNS; run++) {
+    const day = int(1, 28);
+    const month = int(1, 12);
+    const year = int(2025, 2027);
+    const expectedIso = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+    // Test case 1: deadline before law citation
+    const textDeadlineBeforeLaw = `As candidaturas terminam a ${day} de ${MONTHS_PT[month - 1]} de ${year}, nos termos da Lei n.º 20/2020.`;
+    const resultBefore = enriched(textDeadlineBeforeLaw);
+    assert.ok(resultBefore.deadlines[0], `run ${run}: deadline should exist before law marker`);
+    assert.equal(resultBefore.deadlines[0].date.iso, expectedIso, `run ${run}: deadline ISO should match exact date`);
+
+    const eventsBefore = noticeCalendar(textDeadlineBeforeLaw, resultBefore.deadlines);
+    const deadlineEventsBefore = eventsBefore.filter((e) => e.iso === expectedIso);
+    assert.equal(deadlineEventsBefore.length, 1, `run ${run}: should emit exactly one deadline with expected ISO`);
+    assert.equal(deadlineEventsBefore[0].iso, expectedIso);
+    assert.equal(deadlineEventsBefore[0].phase, 'deadline');
+
+    // Test case 2: same date after Lei n.º 20/2020 with explicit date passed
+    const textDateAfterLaw = `Conforme Lei n.º 20/2020, de ${day} de ${MONTHS_PT[month - 1]} de ${year}.`;
+    const eventsAfter = noticeCalendar(textDateAfterLaw, [{ line: 1, date: { iso: expectedIso, status: 'explicit' } }]);
+    assert.deepEqual(eventsAfter, [], `run ${run}: should emit no events when date appears after Lei n.º marker`);
   }
 });

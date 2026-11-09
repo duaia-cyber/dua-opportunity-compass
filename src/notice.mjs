@@ -50,12 +50,46 @@ const SUBMISSION_WORDS = ['candidatura', 'candidaturas', 'inscrição', 'inscri�
 export function noticeCalendar(text, deadlines = []) {
   const deadlineLine = deadlines[0]?.line ?? null;
   const deadlineIso = deadlines[0]?.date?.iso ?? null;
+  const deadlineStatus = deadlines[0]?.date?.status ?? null;
   const events = [];
   const seen = new Set();
   for (const { line, quote } of lineEntries(text)) {
     const explicit = findDatesInLine(quote).filter((date) => date.status === 'explicit' && date.iso);
     if (!explicit.length) continue;
-    if (LEGAL_CITE.test(quote) || SIGN_OFF.test(quote)) continue;
+
+    // Sign-off filtering must happen before legal-citation processing
+    if (SIGN_OFF.test(quote)) continue;
+
+    // Task 2: Conservative law citation filter
+    const hasLegalCite = LEGAL_CITE.test(quote);
+    if (hasLegalCite) {
+      // Check if all conditions for emitting a legal-citation line are met
+      // Condition 1: line number exactly equals selected deadline line
+      // Condition 2: selected deadline has explicit status and valid ISO date
+      const matchingDeadline = deadlineLine !== null && deadlineIso !== null && deadlineStatus === 'explicit' && line === deadlineLine;
+      if (!matchingDeadline) {
+        // Conditions fail: line number does not match, no deadline selected, or status is not explicit
+        continue;
+      }
+
+      // Find the first LEGAL_CITE marker position
+      const legalMatch = quote.match(LEGAL_CITE);
+      const firstLegalPos = legalMatch ? quote.indexOf(legalMatch[0]) : Infinity;
+
+      // Find the matching date that appears before the first legal citation marker
+      const matchingDate = explicit.find((date) => date.iso === deadlineIso && date.end <= firstLegalPos);
+      if (!matchingDate) {
+        // Condition 3 or 4 fails: no matching date or matching date appears after legal citation
+        continue;
+      }
+
+      // Emit only the matching date with phase deadline (per specification requirement)
+      const key = `deadline|${matchingDate.iso}|`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      events.push({ phase: 'deadline', iso: matchingDate.iso, endIso: null, raw: matchingDate.raw, line, quote });
+      continue;
+    }
     const lower = quote.toLowerCase();
     let phase = phaseOf(lower);
     // A period: two explicit dates joined by a range word.

@@ -76,3 +76,79 @@ test('turns rules into checklist entries with reserved ids', () => {
   assert.deepEqual(entries.map((entry) => entry.id), ['need_1_101', 'need_1_102']);
   assert.ok(entries.every((entry) => entry.kind === 'rule' && /^need_\d{1,6}_\d{1,3}$/.test(entry.id)));
 });
+
+test('handles explicit deadlines on lines matching LEGAL_CITE according to the conservative algorithm', () => {
+  // Case (a): Deadline then law - deadline before LEGAL_CITE marker should emit
+  {
+    const text = 'As candidaturas terminam a 4 de dezembro de 2026, nos termos da Lei n.º 20/2020.';
+    const events = calendar(text);
+    assert.ok(events.some((event) => event.iso === '2026-12-04' && event.phase === 'deadline'), 'Case (a): Should emit deadline 2026-12-04 when deadline appears before law citation');
+  }
+
+  // Case (b): Pure law date - no deadline selected for this line should omit
+  {
+    const text = 'Nos termos da Lei n.º 10.406, de 10 de janeiro de 2002, aplica-se o seguinte.';
+    const events = calendar(text);
+    assert.equal(events.length, 0, 'Case (b): Should omit pure law date without deadline pre-selection');
+  }
+
+  // Case (c): Deadline wording after citation - deadline after LEGAL_CITE marker should omit
+  {
+    const text = 'Conforme Lei n.º 20/2020, de 4 de dezembro de 2026, as candidaturas terminam.';
+    const events = calendar(text);
+    assert.equal(events.length, 0, 'Case (c): Should omit deadline appearing after law citation marker');
+  }
+
+  // Case (d): Ambiguous dates - incomplete date should omit
+  {
+    const text = 'As candidaturas terminam em dezembro, nos termos da Lei n.º 20/2020.';
+    const events = calendar(text);
+    assert.equal(events.length, 0, 'Case (d): Should omit ambiguous dates without explicit year');
+  }
+
+  // Case (e): Unselected same-date legal line - date matches but line number differs should omit
+  {
+    const text = [
+      'Intro line.',
+      'As candidaturas terminam a 4 de dezembro de 2026, nos termos da Lei n.º 20/2020.'
+    ].join('\n');
+    // Override the calendar helper to control which line is selected as deadline
+    const analysis = analyse({ text, previousText: '', url: '' });
+    const deadlines = explicitDeadlines(analysis.items);
+    // Simulate by creating a modified deadlines array where the deadline is on a different line
+    const modifiedDeadlines = deadlines.length > 0 ? [{ ...deadlines[0], line: 99 }] : [];
+    const events = noticeCalendar(text, modifiedDeadlines);
+    assert.equal(events.length, 0, 'Case (e): Should omit legal-citation line when line number does not match pre-selected deadline line');
+  }
+});
+
+test('rejects legal-citation deadline when status is not explicit or line is sign-off', () => {
+  // Regression: same-line deadline with status ambiguous should not emit
+  {
+    const text = 'As candidaturas terminam a 4 de dezembro de 2026, nos termos da Lei n.º 20/2020.';
+    const events = noticeCalendar(text, [{ line: 1, date: { iso: '2026-12-04', status: 'ambiguous' } }]);
+    assert.equal(events.length, 0, 'Should not emit ambiguous deadline on legal-citation line');
+  }
+
+  // Regression: execution line with legal citation should not emit as deadline (not pre-selected)
+  {
+    const text = 'A residência decorrerá de 1 a 31 de julho de 2026, nos termos da Lei n.º 20/2020.';
+    const events = calendar(text);
+    assert.equal(events.length, 0, 'Should not emit execution phase line with legal citation unless pre-selected as deadline');
+  }
+
+  // Regression: explicit deadline pre-selected on same line mentioning execution should emit as deadline
+  {
+    const text = 'O prazo de candidatura ao evento termina em 4 de dezembro de 2026, nos termos da Lei n.º 20/2020.';
+    const events = calendar(text);
+    const hasDeadline = events.some((event) => event.iso === '2026-12-04' && event.phase === 'deadline');
+    assert.ok(hasDeadline, 'Should emit as deadline when pre-selected, even if line has execution keywords');
+  }
+
+  // Regression: sign-off line matching legal-cite should be filtered out
+  {
+    const text = 'Cidade da Praia, aos 4 de fevereiro de 2026, Lei n.º 10.406';
+    const events = calendar(text);
+    assert.equal(events.length, 0, 'Should filter out sign-off lines even if they match LEGAL_CITE');
+  }
+});

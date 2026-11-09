@@ -2,6 +2,8 @@
 
 **Date:** 9 November 2026 · **Engine:** this repository · **Method:** `scripts/evaluate-corpus.mjs`
 
+This document preserves an earlier project evaluation. The current development pass reproduced the recorded seven dated candidates, two relative-deadline classifications and one incomplete date, but did not independently re-annotate the source notices, baseline, alerts, rules or obligations. Descriptions of correctness and classifications below are the earlier review’s assessments, not a new independent validation.
+
 ## Why
 
 The fictional example proves the interface. Real notices show whether the reading rules survive real layouts, Brazilian and Portuguese date styles, two-column PDFs and legal wording. The notices are public documents; they are **not** redistributed here. Only metrics and our own judgement are recorded.
@@ -25,7 +27,7 @@ Sources were found and checked on 9 November 2026: DGArtes, fundacaogda.pt, ccdr
 
 ## Deadline: what the countdown would use
 
-The expected answer was read by a person from each notice.
+The expected answers are the prior project review’s recorded assessments; independent human annotation was not established in the current pass.
 
 | # | What the notice says (summarised) | First run | After fixes |
 |---|---|---|---|
@@ -40,7 +42,7 @@ The expected answer was read by a person from each notice.
 | 9 | 1 to 28 Feb 2026 | 2026-02-28 ✓ | **2026-02-28** ✓ |
 | 10 | 15 Jun to 1 Oct 2026 | no date | **2026-10-01** ✓ |
 
-**First run: 1 of 10 correct. After fixes: 10 of 10 handled correctly** (7 dates, 2 relative deadlines named as such, 1 incomplete date refused).
+**Prior recorded assessment:** 1 of 10 in the first run and the expected classification in all 10 after the fixes (7 dates, 2 relative deadlines named as such, 1 incomplete date refused). The initial baseline and ground truth were not independently re-annotated in the current pass.
 
 ### What failed, and the rule that fixed it
 
@@ -57,7 +59,7 @@ The expected answer was read by a person from each notice.
 
 ## Alerts for creative work
 
-After tuning, the engine raised **25 alerts** across the 10 notices. A person read each one:
+After tuning, the engine raised **25 alerts** across the 10 notices. The earlier project review assessed them as follows:
 
 - **22** point to a clause worth a second read: payment by instalments or after delivery, refund obligations, exchange-rate rules, automatic exclusion, co-financing capacity, rights declarations.
 - **2** concern *excluded expenses* rather than excluded applications (CCB 3.4, Circula 4.1). They are useful for the budget but labelled more strongly than they should be.
@@ -69,7 +71,7 @@ False alerts found in the first run and removed: "comparticipação" (the funder
 
 ## Notice calendar, submission rules and obligations
 
-A second pass on the same 10 notices measured the three newer readers. A person read every result.
+A second pass on the same 10 notices measured the three newer readers. The earlier project review assessed the results as follows; these assessments were not independently repeated in the current pass.
 
 | Reader | Found | Judged correct | Notes |
 |---|---|---|---|
@@ -79,7 +81,7 @@ A second pass on the same 10 notices measured the three newer readers. A person 
 
 Fixes made during this pass, each with a unit test:
 
-- Laws cited (the RGPD regulation, Lei n.º, Portaria) and sign-off lines ("Cidade da Praia, aos 4 de fevereiro de 2026") are left out of the calendar.
+- Most legal-citation lines and sign-off lines are excluded from the calendar. A later conservative regression fix can retain a selected candidate date preceding a legal marker; review of the source remains necessary.
 - "reportam" no longer reads as *report*, and "não residentes" no longer reads as a selected applicant.
 - "presente regulamento" no longer reads as *present*.
 - The funder's own duty to protect personal data is not presented as the artist's obligation.

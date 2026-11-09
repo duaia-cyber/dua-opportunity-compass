@@ -1,103 +1,54 @@
 # DUA Opportunity Compass
 
-**Read an open call like a careful producer would, before you spend a week applying.**
+**See the opportunity. Know what to check next.**
 
-Creators across the Portuguese-speaking world lose time and money on open calls: a deadline written as a period, a perpetual licence added in the new version, payment that arrives months after delivery, a rule that excludes incomplete files. Opportunity Compass reads the public notice in your browser, shows every finding next to the exact line it came from, and turns it into a plan you can act on.
+Open calls can hide consequential details across many pages. Opportunity Compass helps creators and small teams review a notice: it highlights candidate deadlines and clauses, keeps findings beside their source lines, compares versions and prepares a working plan. The fictional example makes the workflow easy to try.
 
-It is an independent prototype by [2 LADOS / DUA](https://dua.2lados.pt). It runs entirely in the browser, has no AI at runtime, and sends nothing to a server.
+This is an independent prototype by [2 LADOS / DUA](https://dua.2lados.pt), not a feature connected to DUA accounts or data.
 
-## What it does
+## Try it
 
-1. **Import the notice.** Paste the text or drop the PDF. The text layer is read locally with pdf.js; two-column layouts and wrapped sentences are rebuilt, and each finding keeps its PDF page.
-2. **Critical reading dashboard** (monochrome, one accent colour).
-   - *Deadline*: days left, closing date, and the amount, open questions and contact found.
-   - *Alerts*: clauses about rights, exclusivity, fees, unpaid work, payment timing, exclusion and co-financing. A dropdown switches between **by type** and **by page / across the text**. Clauses that appeared since the earlier version are tagged **New in this version**.
-   - *Readiness*: a ring that fills as you tick the checklist. It never claims eligibility.
-   - *Plan to the deadline*: a timeline with a **2 / 3 / 6-week** dropdown. The choice changes the milestones, the calendar file and the brief.
-   - *Notice map*: every line as one bar, with a dropdown filter (all, alerts, deadline, eligibility, documents, costs, funding) and page marks. Click to read that line.
-   - *Questions for the organiser* and the *readiness checklist* sit in foldable panels. A "How to read these results" panel holds the caveats.
-3. **Evidence lens.** The whole notice, line by line and page by page, coloured by what was found. Click a line to jump to its finding, or a finding to jump back to the text.
-4. **Plan and kit.**
-   - A countdown with suggested working milestones (D−21 to D−1).
-   - A readiness checklist split into the documents and conditions the notice asks for.
-   - One calendar file with every milestone and the deadline day.
-   - An e-mail draft with your questions, opened in your own mail app.
-   - A plain-text brief, or print to PDF.
-5. **Notice calendar, rules and obligations**:
-   - every explicit date in the notice on one timeline, by phase: opening, questions, deadline, results, project, payment, report;
-   - submission rules such as "maximum 2 pages", "maximum 300 characters", "10 MB", "PDF" or "written in Portuguese", which also join the readiness checklist;
-   - what you commit to if selected: reports, credit and publicity, deliveries, refunds.
-6. **Shortlist**: add each call you review and compare them in one timeline and table (deadline, amount, alerts, open questions, readiness), sorted by a dropdown, and download it as CSV. It lives in this tab only.
-7. **Search the notice** inside the evidence lens, accent- and case-insensitive, with next and previous.
-8. **Compare versions** and **save a working copy** (text, notes, review state, checklist, page map) as a local file you can reopen later.
+Serve this folder and open the page in a current browser:
 
-Interface in English and Portuguese; notices in English and Portuguese (PT-PT, PT-BR and African Portuguese usage).
-
-## Run it
-
-JavaScript modules need HTTP, so serve the folder:
-
-```bash
+```sh
 python3 -m http.server 3000 --bind 127.0.0.1
 ```
 
-Open `http://127.0.0.1:3000/` and click **Try the example**. The fictional example tells a small story: between two versions, the deadline moved and a perpetual worldwide licence was added.
+Open `http://127.0.0.1:3000/`, choose **EN** or **PT** and select **Try the example**. You can also paste notice text or import a PDF containing a text layer; `tests/fixtures/notice.pdf` is fictional and safe for testing.
 
-## Evidence that it works
+## What the prototype does
 
-- **Interface check**: serve the folder and open `/tests/ui.html`. It loads the app and operates every control: language, validation, the example, the three dropdowns, the map, the lens, review, notes, both calendars, the checklist, copying questions, the e-mail draft, the brief, print, saving and reopening a working copy, version comparison, section navigation, PDF import and the layout. Downloads, clipboard and print are intercepted. It also covers the shortlist, lens search and keyboard use of the notice map. It also covers the notice calendar, the rules dropdown and rules in the checklist. Last run: 34 of 34 passed.
-- **Unit tests**: run `node --test tests/*.test.mjs` with Node 20+ (74 tests, including 11 property-based tests). They cover dates, periods, deadline ranking, alerts, gaps, checklist, countdown, calendar files, PDF line rebuilding (using items captured from pdf.js), working copies, and a privacy check that fails if application code gains a network call or a remote script.
-- **Property-based tests**: `tests/properties.test.mjs` generates hundreds of notices per run (dates in nine forms, clauses, noise, unicode, formula-like text) and checks invariants. Every quote is its own line. No date is invented: a normalised date's day and year are written in the line. Slash and year-less dates are never normalised. The countdown only uses explicit, positively scored deadlines. Checklist ids are unique and survive a working copy. Plan milestones are ordered. CSV never starts a formula. PDF re-joining never loses a character. Last checked across 20 seeds (66,000 property checks), with no failures.
-- **Real notices**: [docs/EVALUATION.md](docs/EVALUATION.md) records a run over 10 public calls from Portugal, Brazil, Cabo Verde, Moçambique and the CPLP (117 pages).
-  - The first run found the right deadline in 1 of 10 notices. After the fixes it documents, all 10 are handled correctly: 7 dates, 2 relative deadlines named as such, and 1 incomplete date that is refused.
-  - Of 25 alerts, 22 point to a clause worth reading, 2 are weaker than labelled and 1 is a false positive. Recall was not measured.
-- Reproduce the evaluation with `scripts/evaluate-corpus.mjs`. It prints metrics only; the notices are not redistributed.
+- Reads pasted English or Portuguese text, or extracts a PDF text layer locally with the bundled pdf.js library.
+- Highlights candidate dates, requirements, possible costs, rights and other clauses, with the source line and PDF page when available.
+- Shows missing patterns as questions for the organiser, a review checklist and suggested planning milestones. A candidate deadline must be confirmed by the user before exporting its calendar reference.
+- Compares added and removed lines between versions and offers tentative topic filters without asserting what a change means.
+- Compares a temporary shortlist and exports a calendar, a text brief, a spreadsheet-safe CSV or a local working copy. The browser print command can save a brief as PDF.
+- Offers a searchable evidence lens and an English/Portuguese interface.
 
-## Honest limits
+All notice processing happens in the browser. The static site files are downloaded from the host, but the app does not upload the entered notice or call an AI service. Choosing the DUA link or opening a mail draft is an explicit user action.
 
-- Reading is pattern-based. It can miss or misclassify clauses; every finding is a prompt to read the original, never a legal conclusion or an eligibility decision.
-- Dates are never invented. Slash dates such as 04/05/2026 are ambiguous. A period exposes only its explicit closing date. A missing year is never filled in. Publication, opening and results dates never drive the countdown.
-- Scanned PDFs without a text layer are reported, not OCR'd.
-- Calendar files are all-day references; confirm the time and time zone in the notice.
-- DUA integration (for example with Radar Cultural) is a future possibility only. This prototype is not connected to DUA accounts or data.
+## Reliability and limits
 
-## Privacy
+The reading engine uses patterns, not legal reasoning. It may miss or misclassify a date, clause or change. A missing alert does not mean that a condition is absent; always check the complete official notice and its time zone. The readiness checklist is not an eligibility decision. Dates and calendar exports are candidates for human verification, not official reminders.
 
-Text and PDFs are processed in the browser. Nothing is uploaded, stored on a server or tracked. Files you download (brief, calendar, working copy) contain what you supplied; handle them accordingly. The only outbound link is the "Visit DUA" link, followed only when you click it.
+Scanned PDFs without a readable text layer cannot be analysed. Complex layouts, multi-page references, wording and version edits may be reconstructed incorrectly. Added and removed lines are literal differences, not a legal comparison. Downloaded files can contain the user's supplied information and should be handled accordingly.
 
-## How Kiro was used
+## Validation
 
-- **Kiro CLI** drafted the original specification and developed the first analysis, calendar-export and working-copy modules. That output was inspected and revised after tests exposed date, calendar and validation defects.
-- **`.kiro/` is the source of truth**:
-  - `specs/opportunity-compass/requirements.md` covers sections 1–18, including the PDF import, evidence lens, application kit, deadline ranking, evaluation, notice calendar, submission rules, obligations, reading order and property-based tests.
-  - `steering/source-of-truth.md` holds the safety rules every change must respect.
-  - `agents/notice-auditor.json` is a read-only auditor agent that checks findings against those rules and runs the tests.
-  - `hooks/opportunity-compass.json` runs the full test suite, including the privacy check, whenever the agent saves a module.
-- **Claude Code** later added most features: the critical-reading, PDF, evidence-lens, kit, shortlist and notice modules; the property-based tests; the real-notice evaluation; and the matching spec, steering, agent and hook files. The agent and hook follow the Kiro configuration reference as published on kiro.dev on 9 November 2026, but they have not yet been run inside Kiro. `docs/KIRO-PLAYBOOK.md` lists the steps to run them in Kiro and document the results.
-- No Kiro or AI API is called at runtime.
+- Run `node --test --test-concurrency=1 tests/*.test.mjs` with Node 20 or later. The latest local run completed **93 tests**. These cover parsing, calendars, version changes, working copies, privacy safeguards and generated examples.
+- With the app being served, `/tests/ui.html` runs an automated interface check. The latest local run completed **35 checks**. A separate local browser pass exercised the primary actions, version filtering and layout at widths 320, 360, 390 and 1440 pixels.
+- `docs/EVALUATION.md` documents an earlier review of ten public notices. A repeat of the deadline extraction reproduced its recorded outcomes: seven dated candidates, two relative deadlines and one incomplete date. This small sample does not measure recall or establish correctness on other notices; the notices are not redistributed.
 
-## Project layout
+## How Kiro contributed
 
-```
-index.html, styles.css      interface (EN/PT)
-src/analysis.mjs            excerpts, dates, periods, deadline scoring, version diff
-src/insights.mjs            alerts, gaps, amounts, checklist, countdown
-src/pdf.mjs                 local PDF text layer → lines, columns, page map
-src/calendar.mjs            RFC 5545 all-day references and milestone calendars
-src/shortlist.mjs           shortlist summaries, sorting and safe CSV
-src/notice.mjs              notice calendar, submission rules, obligations
-src/workspace.mjs           local working-copy format (validated)
-src/app.mjs                 interface wiring
-vendor/pdfjs/               pdf.js 6.5.438 (Apache-2.0), unmodified
-tests/                      node:test suites, a captured pdf.js fixture and ui.html (interface check)
-scripts/evaluate-corpus.mjs metrics-only evaluation over your own PDFs
-docs/EVALUATION.md          real-notice evaluation
-docs/SUBMISSION.md          Devpost submission draft (English)
-docs/VIDEO-SCRIPT.md        under-3-minute demo script
-docs/KIRO-PLAYBOOK.md       steps to complete and document Kiro use
-.kiro/                      spec, steering, agent and hooks
-```
+Kiro CLI was used for the original specification and early analysis, calendar and working-copy modules. Claude Code subsequently built much of the PDF, dashboard and reading experience.
 
-## Licence
+On 9 November, Kiro CLI was used again on the actual codebase: it drafted a spec, regression tests and implementation for a calendar edge case involving a legal citation; authored a separate spec, code and tests for topic labels on literal version differences; and added a generated-case regression. Its output was reviewed, corrected and tested by the developer. The Kiro custom auditor was invoked in read-only mode; its suggestions were independently checked. The Kiro save hook ran the local tests and recorded a failing regression before the calendar fix and a passing run afterward. The `.kiro/` directory contains the specs, steering, agent and hook configuration. See [docs/KIRO-EVIDENCE.md](docs/KIRO-EVIDENCE.md) for the scope and limits of these claims.
 
-MIT, see [LICENSE](LICENSE). pdf.js in `vendor/pdfjs` is © Mozilla Foundation and contributors, under the Apache License 2.0.
+No Kiro or other AI service is called when using the app. Integration with DUA Radar Cultural is a possible future direction, not a current integration.
+
+## Code and licence
+
+`src/` contains the browser modules; `tests/` contains the tests and fictional fixture; `docs/` explains the evaluation and submission. No build step is required.
+
+The project is MIT licensed; see [LICENSE](LICENSE). The unmodified pdf.js 6.5.438 files in `vendor/pdfjs/` are © Mozilla Foundation and contributors and are licensed under Apache-2.0; the applicable licence is included with the files.

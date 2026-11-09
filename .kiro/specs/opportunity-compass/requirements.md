@@ -91,7 +91,7 @@ A deterministic board shown above the excerpt list. Every element is either a qu
 - **E-mail draft**: a `mailto:` link that opens the user's own e-mail app with the questions from the gaps. If exactly one e-mail address appears in the text it is used as recipient; otherwise the recipient is left empty. The page sends nothing.
 
 ### 16. Notice Calendar, Submission Rules and Obligations
-- **Calendar**: every explicit date (with a year) is placed on a timeline and classified by its line as opening, questions, deadline (the countdown date, and the same date in another sentence about applying), results, project/execution, payment, report or other. Two explicit dates joined by a range word form a period. Lines citing laws (Lei, Decreto, Portaria, Regulamento (UE), RGPD, n.º) and sign-off lines ("Place, date") are left out. Dates without a year are never completed. A dropdown shows all dates or only upcoming ones.
+- **Calendar**: every explicit date (with a year) is placed on a timeline and classified by its line as opening, questions, deadline (the countdown date, and the same date in another sentence about applying), results, project/execution, payment, report or other. Two explicit dates joined by a range word form a period. Sign-off lines and most lines citing laws are left out. A previously selected candidate may be kept on a legal-citation line only when its exact date precedes the first legal marker; see the regression design below. This heuristic can omit or misclassify dates, so check the original notice. Dates without a year are never completed. A dropdown shows all dates or only upcoming ones.
 - **Submission rules**: limits on pages, characters, words, minutes, seconds, images, works, files, MB and GB, read only when the number closely follows a limit word (máximo, até, up to, no more than, não pode exceder, mínimo, at least…), with max/min; file formats on lines about files or submission; the application language only when a writing or submitting verb is present, listing every language named. Rules join the readiness checklist with ids need_<line>_101 onwards.
 - **Obligations if selected**: lines with an obligation verb and a selected/beneficiary subject, classified as refund, report, credit and publicity, delivery or other commitment. Without a selected subject only refund, report and credit clauses are kept. Data-protection clauses are excluded.
 - The brief includes the calendar, the rules and the obligations. All three are prompts to read the line, not legal advice.
@@ -146,6 +146,22 @@ A deterministic board shown above the excerpt list. Every element is either a qu
 - No integration with DUA systems (current prototype only)
 - No scheduled events or automated reminders
 - No eligibility determination or advice
+
+## Bug: Deadline lost when line mentions law
+
+When a notice deadline line also cites a law or regulation (e.g., "As candidaturas terminam a 4 de dezembro de 2026, nos termos da Lei n.º 20/2020"), the deadline is excluded from the calendar. The current `noticeCalendar()` filter skips any line matching the `LEGAL_CITE` regex, causing loss of valid explicit deadlines that happen to share a line with legal references.
+
+**Identified case**: "As candidaturas terminam a 4 de dezembro de 2026, nos termos da Lei n.º 20/2020." yields a valid deadline (2026-12-04) but is dropped.
+
+**Algorithm (conservative)**: Keyword proximity or distance from a law is NOT enough to prove a date is a deadline. Only emit a deadline event on a line matching `LEGAL_CITE` if ALL of the following hold:
+- The line number equals the already-selected deadline line from `explicitDeadlines()`
+- The selected deadline has explicit status and a valid ISO date
+- An explicit matching date ends **before** the first `LEGAL_CITE` marker on the line
+- Emit only that matching date; suppress the legal-citation line from contributing other dates or phases
+
+Otherwise suppress the legal-citation line entirely. Ordinary lines without `LEGAL_CITE` are unchanged. This deliberately misses candidate deadlines when the citation marker appears before the date. Position and keywords cannot establish the legal meaning of a date, so the user must verify it in the source.
+
+**Constraint**: Preserve the source quote and do not complete an incomplete date. The matcher must omit the tested law-date and ambiguous-date examples, but other phrasings can still be missed or misclassified.
 
 ## Future Possibilities
 

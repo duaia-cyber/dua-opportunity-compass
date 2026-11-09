@@ -1,8 +1,10 @@
-# Kiro playbook: making the Kiro work real before submission
+# Kiro playbook: historical preparation checklist
+
+**Update, 9 November 2026:** Kiro CLI is installed for the local session; the custom agent and save hook have now been run, and Kiro contributed to the calendar regression and change-review work. See [KIRO-EVIDENCE.md](KIRO-EVIDENCE.md) for what was actually verified. The checklist below records the earlier plan, not the current project status.
 
 The official rules say: *"Entrants must build a working software application using Kiro … Insufficient use of Kiro will result in disqualification at the Judges' sole discretion."* **Technological Implementation** (20% of the score) asks how thoroughly and skilfully Kiro was used: specs, steering, hooks, custom agents, MCP, property-based testing and powers.
 
-**Current honest status (9 November 2026):**
+**Earlier status, before the Kiro session:**
 - Kiro CLI drafted the original spec and the first analysis, calendar and working-copy modules.
 - Most later features were built with Claude Code.
 - The `.kiro` agent and hook were written to the published Kiro format but **have not yet been run inside Kiro**.

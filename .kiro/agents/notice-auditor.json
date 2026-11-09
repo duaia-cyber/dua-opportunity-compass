@@ -19,7 +19,7 @@
     {
       "name": "tests-at-start",
       "trigger": "SessionStart",
-      "action": { "type": "command", "command": "node --test tests/*.test.mjs" }
+      "action": { "type": "command", "command": "node --test --test-concurrency=1 tests/*.test.mjs" }
     }
   ],
   "welcomeMessage": "Notice auditor ready. Give me a notice (text or PDF path) or ask me to audit a module against the source-of-truth rules."
