@@ -4,7 +4,7 @@
 
 Open calls can hide consequential details across many pages. Opportunity Compass helps creators and small teams review a notice: it highlights candidate deadlines and clauses, keeps findings beside their source lines, compares versions and prepares a working plan. The fictional example makes the workflow easy to try.
 
-This is an independent prototype by [2 LADOS / DUA](https://dua.2lados.pt), not a feature connected to DUA accounts or data.
+This is an independent prototype by [2 LADOS / DUA](https://dua.2lados.pt), not a feature connected to DUA accounts or data. [Try the live demo](https://dua-opportunity-compass.vercel.app/).
 
 ## Try it
 
@@ -51,4 +51,4 @@ No Kiro or other AI service is called when using the app. Integration with DUA R
 
 `src/` contains the browser modules; `tests/` contains the tests and fictional fixture; `docs/` explains the evaluation and submission. No build step is required.
 
-The project is MIT licensed; see [LICENSE](LICENSE). The unmodified pdf.js 6.5.438 files in `vendor/pdfjs/` are © Mozilla Foundation and contributors and are licensed under Apache-2.0; the applicable licence is included with the files.
+The project is MIT licensed; see [LICENSE](LICENSE). The unmodified pdf.js 6.5.438 files in `vendor/pdfjs/` are © Mozilla Foundation and contributors and are licensed under Apache-2.0; the applicable licence is included with the files. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

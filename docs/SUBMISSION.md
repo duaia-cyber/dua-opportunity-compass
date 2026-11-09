@@ -31,6 +31,6 @@ Explore a future connection with DUA Radar Cultural and evaluate recall on a lar
 5. The source repository is MIT licensed and contains `.kiro/`; pdf.js retains its Apache-2.0 licence.
 
 ## Links to complete after publication
-- Live demo: pending
+- Live demo: https://dua-opportunity-compass.vercel.app/
 - Public source: https://github.com/duaia-cyber/dua-opportunity-compass
 - Public YouTube demonstration under three minutes: pending
