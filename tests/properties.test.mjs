@@ -197,8 +197,7 @@ test('property: CSV never lets a cell start a spreadsheet formula', () => {
 
 test('property: working copies round-trip any text exactly', () => {
   for (let run = 0; run < RUNS; run++) {
-    const text = notice() + pick(['', '\u0000', '
-', '😀', '"\\']);
+    const text = notice() + pick(['', '\u0000', '\u2028', '😀', '"\\']);
     const copy = decodeWorkspace(encodeWorkspace({ text, previousText: notice(), url: '', reviewed: [], notes: {} }));
     assert.equal(copy.text, text);
   }

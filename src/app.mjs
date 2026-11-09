@@ -165,7 +165,7 @@ Object.assign(copy.pt, {
 });
 
 Object.assign(copy.en, {
-  calendarTitle:'Notice calendar', calendarViewLabel:'Calendar view', calendarAll:'All dates', calendarFuture:'Upcoming only', calendarEmpty:'No explicit dates with a year were found apart from those already shown.', calendarNoFuture:'All dates in the notice have passed.', calendarNote:'Explicit dates only. Laws cited and sign-off dates are left out; dates without a year are never completed.',
+  calendarTitle:'Notice calendar', calendarViewLabel:'Calendar view', calendarAll:'All dates', calendarFuture:'Upcoming only', calendarEmpty:'No explicit dates with a year were found apart from those already shown.', calendarNoFuture:'All detected dates have passed.', calendarNote:'Detected dates with a year; verify them in the source. Some legal and sign-off dates may be omitted.',
   phases:{opening:'Opening',questions:'Questions',deadline:'Deadline',results:'Results',execution:'Project',payment:'Payment',report:'Report',other:'Other'},
   rulesTitle:'Submission rules', obligationsTitle:'If selected', rulesViewLabel:'Rules or obligations', rulesEmpty:'No length limits, file formats or language rules detected. Check the application form.', obligationsEmpty:'No obligations for selected applicants detected. Read the notice before accepting.',
   rulesNote:'Rules are also added to your readiness checklist.', obligationsNote:'What you commit to if the application succeeds.',
@@ -175,7 +175,7 @@ Object.assign(copy.en, {
   languages:{pt:'Portuguese',en:'English',es:'Spanish',fr:'French',kea:'Creole'}, navCalendar:'Calendar', navRules:'Rules'
 });
 Object.assign(copy.pt, {
-  calendarTitle:'Calendário do aviso', calendarViewLabel:'Vista do calendário', calendarAll:'Todas as datas', calendarFuture:'Só próximas', calendarEmpty:'Não foram encontradas datas explícitas com ano além das já mostradas.', calendarNoFuture:'Todas as datas do aviso já passaram.', calendarNote:'Só datas explícitas. Leis citadas e datas de assinatura ficam de fora; datas sem ano nunca são completadas.',
+  calendarTitle:'Calendário do aviso', calendarViewLabel:'Vista do calendário', calendarAll:'Todas as datas', calendarFuture:'Só próximas', calendarEmpty:'Não foram encontradas datas explícitas com ano além das já mostradas.', calendarNoFuture:'Todas as datas detetadas já passaram.', calendarNote:'Datas detetadas com ano; confirma-as na fonte. Algumas datas legais e de assinatura podem ser omitidas.',
   phases:{opening:'Abertura',questions:'Dúvidas',deadline:'Prazo',results:'Resultados',execution:'Projeto',payment:'Pagamento',report:'Relatório',other:'Outra'},
   rulesTitle:'Regras de submissão', obligationsTitle:'Se fores selecionado', rulesViewLabel:'Regras ou obrigações', rulesEmpty:'Não foram detetados limites, formatos ou regras de língua. Confirma no formulário de candidatura.', obligationsEmpty:'Não foram detetadas obrigações para selecionados. Lê o aviso antes de aceitar.',
   rulesNote:'As regras também entram na tua checklist de preparação.', obligationsNote:'O que te compromete se a candidatura for aprovada.',
