@@ -9,8 +9,11 @@ It is an independent prototype by [2 LADOS / DUA](https://dua.2lados.pt). It run
 ## What it does
 
 1. **Import the notice.** Paste the text or drop the PDF. The text layer is read locally with pdf.js; two-column layouts and wrapped sentences are rebuilt, and each finding keeps its PDF page.
-2. **Critical reading.**
-   - *Snapshot*: days to the deadline, the amount quoted, how many clauses need a second read, and your readiness.
+2. **Critical reading dashboard.**
+   - *Deadline hero and forecast*: days to the deadline, the closing date, and the suggested milestones like a seven-day forecast.
+   - *Highlights*: alerts by type (bar chart), preparation gauge, a work-window arc from D−21 to the deadline with today on it, the amount quoted, open questions and the contact found.
+   - *Notice map*: every line of the notice as one bar, coloured by what was found, with alert pins and page marks; click to read that line.
+   - *Section navigation*: a sticky bar on phones, a side rail on wide screens.
    - *Alerts for creative work*: rights and licences, exclusivity, entry fees, unpaid work, payment timing, grounds for exclusion, co-financing. Clauses that appeared since the earlier version are tagged **New in this version**.
    - *What the text does not say*: missing deadline, amount, contact, criteria, rights or payment timing, and deadlines counted from another date, each with a question for the organiser.
 3. **Evidence lens.** The whole notice, line by line and page by page, coloured by what was found. Click a line to jump to its finding, or a finding to jump back to the text.

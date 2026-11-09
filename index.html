@@ -45,15 +45,24 @@
     </section>
 
     <section class="results shell" id="results" hidden aria-labelledby="results-title" tabindex="-1">
+      <nav class="section-nav" id="sectionNav" aria-label="Results sections"></nav>
       <div class="results-heading"><div><p class="eyebrow section-eyebrow" data-i18n="reviewEyebrow">02 / REVIEW THE EVIDENCE</p><h2 id="results-title" data-i18n="resultsTitle">Make the call, with context.</h2><p data-i18n="resultsIntro">These are possible points to check, not verified facts or eligibility decisions.</p></div><a id="sourceLink" class="source-link" target="_blank" rel="noopener noreferrer" hidden><span data-i18n="openSource">Open original source</span><span aria-hidden="true">↗</span></a></div>
       <div class="summary-line"><div class="summary-number"><strong id="evidenceCount">0</strong><span data-i18n="pointsFound">points to review</span></div><div class="summary-number"><strong id="reviewedCount">0</strong><span data-i18n="markedReviewed">marked reviewed</span></div><div class="summary-note" data-i18n="reviewSummaryNote">Each point is shown with its source excerpt.</div></div>
       <section class="insight-board" id="insightBoard" aria-labelledby="board-title">
         <div class="board-heading"><p class="eyebrow section-eyebrow" data-i18n="boardEyebrow">CRITICAL READING</p><h3 id="board-title" data-i18n="boardTitle">What a careful reader would notice.</h3><p data-i18n="boardIntro">Patterns found in your text, each tied to the line it came from. Read them as prompts, not conclusions.</p></div>
-        <div class="snapshot" id="snapshot"></div>
+        <div class="dash">
+          <div class="dash-left">
+            <div class="dash-hero" id="snapshot"></div>
+            <article class="board-card card-countdown" id="countdownCard" aria-labelledby="countdown-title"></article>
+          </div>
+          <div class="dash-right">
+            <div class="highlights" id="highlights"></div>
+            <article class="board-card doc-map" id="docMap" aria-labelledby="map-title"></article>
+          </div>
+        </div>
         <div class="board-grid">
           <article class="board-card card-signals" id="signalsCard" aria-labelledby="signals-title"></article>
           <article class="board-card card-gaps" id="gapsCard" aria-labelledby="gaps-title"></article>
-          <article class="board-card card-countdown" id="countdownCard" aria-labelledby="countdown-title"></article>
           <article class="board-card card-ready" id="readinessCard" aria-labelledby="ready-title"></article>
         </div>
       </section>
@@ -63,7 +72,7 @@
         <div class="lens-body" id="lensBody"></div>
       </section>
       <div class="results-grid"><div><div class="list-header"><h3 data-i18n="evidenceTitle">Evidence, not assumptions</h3><span data-i18n="evidenceHint">Review each excerpt</span></div><p id="partialEvidence" class="empty-state" hidden></p><div id="evidenceList" class="evidence-list"></div><p id="emptyEvidence" class="empty-state" hidden data-i18n="noEvidence">No matching excerpts found. Check the source manually; absence here does not mean a requirement does not exist.</p><section id="changesSection" class="changes-section" hidden><div class="list-header"><h3 data-i18n="changesTitle">What changed in the text</h3><span data-i18n="changesHint">Literal comparison</span></div><p class="subtle" data-i18n="changesNote">Different wording does not necessarily mean a change in rules.</p><p id="partialChanges" class="empty-state" hidden></p><div id="changesList"></div></section></div>
-        <aside class="plan-panel"><div class="plan-head"><span class="plan-icon">✳</span><span class="plan-step" data-i18n="planStep">03 / YOUR PLAN</span></div><h3 data-i18n="planTitle">Your review, in one place.</h3><p data-i18n="planDescription">Keep the excerpts and your review status together. Confirm details with the organiser before applying.</p><div class="plan-status"><span class="plan-status-dot"></span><span id="planStatus" data-i18n="planInitial">Your review is in progress</span></div><button class="button button-light plan-button" type="button" id="exportButton"><span data-i18n="downloadBrief">Download review brief</span><span aria-hidden="true">↓</span></button><button class="button button-outline plan-button" type="button" id="printButton"><span data-i18n="printBrief">Print or save as PDF</span><span aria-hidden="true">↗</span></button><div class="plan-kit"><p class="plan-kit-title" data-i18n="kitTitle">Application kit</p><button class="button button-outline plan-button" type="button" id="planCalendarButton" disabled><span data-i18n="planCalendar">Calendar with milestones</span><span aria-hidden="true">↓</span></button><p class="plan-kit-hint" id="planCalendarHint"></p><a class="button button-outline plan-button" id="emailDraft" hidden><span data-i18n="emailDraft">E-mail draft with questions</span><span aria-hidden="true">↗</span></a><p class="plan-kit-hint" id="emailHint" hidden></p></div><p class="plan-small" data-i18n="planSmall">No application is sent. The brief is created on this device.</p></aside>
+        <aside class="plan-panel" id="planPanel"><div class="plan-head"><span class="plan-icon">✳</span><span class="plan-step" data-i18n="planStep">03 / YOUR PLAN</span></div><h3 data-i18n="planTitle">Your review, in one place.</h3><p data-i18n="planDescription">Keep the excerpts and your review status together. Confirm details with the organiser before applying.</p><div class="plan-status"><span class="plan-status-dot"></span><span id="planStatus" data-i18n="planInitial">Your review is in progress</span></div><button class="button button-light plan-button" type="button" id="exportButton"><span data-i18n="downloadBrief">Download review brief</span><span aria-hidden="true">↓</span></button><button class="button button-outline plan-button" type="button" id="printButton"><span data-i18n="printBrief">Print or save as PDF</span><span aria-hidden="true">↗</span></button><div class="plan-kit"><p class="plan-kit-title" data-i18n="kitTitle">Application kit</p><button class="button button-outline plan-button" type="button" id="planCalendarButton" disabled><span data-i18n="planCalendar">Calendar with milestones</span><span aria-hidden="true">↓</span></button><p class="plan-kit-hint" id="planCalendarHint"></p><a class="button button-outline plan-button" id="emailDraft" hidden><span data-i18n="emailDraft">E-mail draft with questions</span><span aria-hidden="true">↗</span></a><p class="plan-kit-hint" id="emailHint" hidden></p></div><p class="plan-small" data-i18n="planSmall">No application is sent. The brief is created on this device.</p></aside>
       </div>
       <div class="review-footer"><span>✳</span><p data-i18n="reviewFooter">Built to support human judgment, not replace it. Always check the official rules.</p></div>
     </section>

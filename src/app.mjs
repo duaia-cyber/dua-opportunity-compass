@@ -108,7 +108,13 @@ Object.assign(copy.en, {
   lensTitle:'Evidence lens', lensHint:'Every line of your text, coloured by what was found. Click a line or a finding to jump.', lensAlert:'Alert', lensPage:'Page',
   kitTitle:'Application kit', planCalendar:'Calendar with milestones', planCalendarLocked:'Mark the deadline excerpt reviewed to unlock the calendar.', planCalendarNone:'No explicit deadline date for a calendar.', planCalendarHint:'All-day entries: the deadline day from the text plus suggested milestones.',
   emailDraft:'E-mail draft with questions', emailDraftTo:'E-mail draft to {email}', emailHint:'Opens your e-mail app with the questions. Nothing is sent by this page.', emailNone:'No open questions detected for the organiser.', emailSubject:'Questions about the call', emailFooter:'Drafted with DUA Opportunity Compass from the public notice. Please confirm.',
-  rangeClosing:'period: closing date read as {date}', suggested:'SUGGESTED', deadlineDay:'Deadline day (from the notice)', briefSourceFile:'Source file', pagesWord:'pages', briefPagesNote:'text read in this browser'
+  rangeClosing:'period: closing date read as {date}', suggested:'SUGGESTED',
+  heroNoDeadlineBadge:'Deadline not confirmed', heroCloses:'Closes', heroToday:'Today', heroExample:'Fictional example', heroPasted:'Pasted text',
+  hlAlerts:'Alerts by type', hlReady:'Preparation', hlWindow:'Work window', hlWindowStart:'Start', hlGaps:'Open questions', hlNoGaps:'None detected', hlContact:'Contact', hlNoContact:'No e-mail detected', noReadyShort:'no checklist', moreAmounts:'+{n} more in the text',
+  windowBefore:'Preparation starts {date}', windowInside:'Day {n} of {total} of the work window',
+  shortSignals:{rights:'Rights',exclusivity:'Excl.',fee:'Fee',unpaid:'Unpaid',payment:'Pay',exclusion:'Out',match:'Co-fin'},
+  mapTitle:'Notice map', mapHint:'Each bar is a line. Tall red bars are alerts. Click to read.', mapAria:'Map of {lines} lines with {alerts} alert lines', mapStats:'{lines} lines · {found} with findings · {alerts} alerts',
+  navLabel:'Results sections', navSummary:'Summary', navAlerts:'Alerts', navGaps:'Questions', navReady:'Readiness', navLens:'Lens', navPoints:'Excerpts', navPlan:'Plan', deadlineDay:'Deadline day (from the notice)', briefSourceFile:'Source file', pagesWord:'pages', briefPagesNote:'text read in this browser'
 });
 Object.assign(copy.pt, {
   workspaceIntro:'Cola a chamada pública, importa o PDF ou explora um exemplo fictício identificado.',
@@ -119,7 +125,13 @@ Object.assign(copy.pt, {
   lensTitle:'Lente de evidência', lensHint:'Cada linha do teu texto, colorida pelo que foi encontrado. Clica numa linha ou num ponto para saltar.', lensAlert:'Alerta', lensPage:'Página',
   kitTitle:'Kit de candidatura', planCalendar:'Calendário com marcos', planCalendarLocked:'Marca o excerto do prazo como revisto para desbloquear o calendário.', planCalendarNone:'Sem data de prazo explícita para um calendário.', planCalendarHint:'Entradas de dia inteiro: o dia do prazo lido do texto e os marcos sugeridos.',
   emailDraft:'Rascunho de email com perguntas', emailDraftTo:'Rascunho de email para {email}', emailHint:'Abre a tua aplicação de email com as perguntas. Esta página não envia nada.', emailNone:'Não foram detetadas perguntas em aberto para a organização.', emailSubject:'Dúvidas sobre a chamada', emailFooter:'Rascunho preparado com o DUA Opportunity Compass a partir do aviso público. Agradecemos confirmação.',
-  rangeClosing:'período: data de fecho lida como {date}', suggested:'SUGESTÃO', deadlineDay:'Dia do prazo (lido do aviso)', briefSourceFile:'Ficheiro de origem', pagesWord:'páginas', briefPagesNote:'texto lido neste navegador'
+  rangeClosing:'período: data de fecho lida como {date}', suggested:'SUGESTÃO',
+  heroNoDeadlineBadge:'Prazo por confirmar', heroCloses:'Fecha a', heroToday:'Hoje', heroExample:'Exemplo fictício', heroPasted:'Texto colado',
+  hlAlerts:'Alertas por tipo', hlReady:'Preparação', hlWindow:'Janela de trabalho', hlWindowStart:'Início', hlGaps:'Perguntas em aberto', hlNoGaps:'Nenhuma detetada', hlContact:'Contacto', hlNoContact:'Sem email detetado', noReadyShort:'sem checklist', moreAmounts:'+{n} no texto',
+  windowBefore:'A preparação começa a {date}', windowInside:'Dia {n} de {total} da janela de trabalho',
+  shortSignals:{rights:'Direitos',exclusivity:'Exclus.',fee:'Taxa',unpaid:'S/ pago',payment:'Pagam.',exclusion:'Exclusão',match:'Cofin.'},
+  mapTitle:'Mapa do aviso', mapHint:'Cada barra é uma linha. As barras vermelhas altas são alertas. Clica para ler.', mapAria:'Mapa de {lines} linhas com {alerts} linhas de alerta', mapStats:'{lines} linhas · {found} com pontos · {alerts} alertas',
+  navLabel:'Secções dos resultados', navSummary:'Resumo', navAlerts:'Alertas', navGaps:'Perguntas', navReady:'Preparação', navLens:'Lente', navPoints:'Excertos', navPlan:'Plano', deadlineDay:'Dia do prazo (lido do aviso)', briefSourceFile:'Ficheiro de origem', pagesWord:'páginas', briefPagesNote:'texto lido neste navegador'
 });
 
 const $ = (selector) => document.querySelector(selector);
@@ -196,7 +208,14 @@ function attachInsights(result,text) {
 }
 
 function formatDay(iso,options={day:'numeric',month:'short'}) {
-  return new Intl.DateTimeFormat(language==='pt'?'pt-PT':'en-GB',{...options,timeZone:'UTC'}).format(new Date(`${iso}T00:00:00Z`));
+  const locale=language==='pt'?'pt-PT':'en-GB';
+  const date=new Date(`${iso}T00:00:00Z`);
+  // pt-PT renders a short day and month as "13/11"; spell the month instead ("13 nov").
+  if(options.month==='short' && !options.year) {
+    const month=new Intl.DateTimeFormat(locale,{month:'short',timeZone:'UTC'}).format(date).replace('.','');
+    return `${date.getUTCDate()} ${month}`;
+  }
+  return new Intl.DateTimeFormat(locale,{...options,timeZone:'UTC'}).format(date);
 }
 
 function countdownState() {
@@ -352,6 +371,216 @@ async function importPdf(file) {
   }
 }
 
+const SVG_NS='http://www.w3.org/2000/svg';
+function svg(tag,attrs={},children=[]) {
+  const node=document.createElementNS(SVG_NS,tag);
+  for(const [key,value] of Object.entries(attrs)) node.setAttribute(key,String(value));
+  for(const child of children) node.append(child);
+  return node;
+}
+const ICONS={
+  compass:'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm3.6 6.4-2.1 5.1-5.1 2.1 2.1-5.1 5.1-2.1Z',
+  calendar:'M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm-2 7h14v10H5V9Z',
+  pin:'M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z',
+  alert:'M12 3 2 21h20L12 3Zm1 14h-2v2h2v-2Zm0-7h-2v5h2v-5Z',
+  doc:'M6 2h8l6 6v14H6V2Zm7 1.5V9h5.5L13 3.5ZM8 13h8v1.5H8V13Zm0 3.5h8V18H8v-1.5Z',
+  money:'M3 6h18v12H3V6Zm9 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM5 8v2a2 2 0 0 0 2-2H5Zm12 0a2 2 0 0 0 2 2V8h-2ZM5 14v2h2a2 2 0 0 0-2-2Zm14 0a2 2 0 0 0-2 2h2v-2Z',
+  question:'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 15h-2v-2h2v2Zm1.1-6.6-.9.9c-.7.7-1.2 1.3-1.2 2.7h-2v-.5c0-1.1.5-2.1 1.2-2.8l1.2-1.3c.4-.3.6-.8.6-1.4a2 2 0 0 0-4 0H7a4 4 0 0 1 8 0c0 .9-.4 1.7-.9 2.4Z',
+  mail:'M3 5h18v14H3V5Zm2 2v.5l7 4.5 7-4.5V7H5Zm14 2.8-7 4.5-7-4.5V17h14V9.8Z',
+  check:'M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z',
+  layers:'M12 2 1 8l11 6 11-6-11-6Zm-9 9.5L12 16l9-4.5 2 1.1-11 6-11-6 2-1.1Z',
+  lens:'M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z',
+  list:'M4 5h2v2H4V5Zm4 0h12v2H8V5Zm-4 6h2v2H4v-2Zm4 0h12v2H8v-2Zm-4 6h2v2H4v-2Zm4 0h12v2H8v-2Z',
+  plan:'M4 4h16v4H4V4Zm0 6h10v4H4v-4Zm0 6h16v4H4v-4Z'
+};
+function icon(name,className='icon') {
+  return svg('svg',{viewBox:'0 0 24 24',class:className,'aria-hidden':'true',focusable:'false'},[svg('path',{d:ICONS[name],fill:'currentColor'})]);
+}
+function arcPoint(fraction,cx=100,cy=100,r=80) {
+  const angle=Math.PI*(1-Math.min(1,Math.max(0,fraction)));
+  return [cx+r*Math.cos(angle),cy-r*Math.sin(angle)];
+}
+function dayDiff(a,b) {
+  return Math.round((Date.parse(`${b}T00:00:00Z`)-Date.parse(`${a}T00:00:00Z`))/86400000);
+}
+
+function renderDashboard({state,total,done,percent,signalCount}) {
+  const t=copy[language];
+  const today=localIsoDay();
+  const long={day:'numeric',month:'long',year:'numeric'};
+
+  // Hero: the deadline, like the main reading of the day
+  const hero=$('#snapshot'); hero.replaceChildren();
+  const heroTop=element('div','hero-top');
+  heroTop.append(element('span','hero-badge',state?(state.reviewed?t.countdownStatusReviewed:t.countdownStatusText):t.heroNoDeadlineBadge));
+  heroTop.append(icon('compass','hero-icon'));
+  hero.append(heroTop);
+  const big=element('div','hero-big');
+  let variant='';
+  if(!state){
+    const relative=current.gaps.includes('deadlineRelative');
+    variant=' is-empty';
+    big.append(element('strong','hero-number','—'),element('span','hero-unit',relative?t.gapNames.deadlineRelative:t.tileNoDeadline));
+  } else if(state.countdown.passed){
+    variant=' is-warning';
+    big.append(element('strong','hero-number','!'),element('span','hero-unit',t.tilePassed));
+  } else {
+    big.append(element('strong','hero-number',String(state.countdown.daysLeft)),element('span','hero-unit',state.countdown.daysLeft===1?t.tileDaysOne:state.countdown.daysLeft===0?t.tileToday:t.tileDays));
+  }
+  hero.className=`dash-hero${variant}`;
+  hero.append(big);
+  const condition=element('p','hero-condition');
+  if(state){ condition.append(icon('calendar','icon-sm'),document.createTextNode(` ${t.heroCloses} ${formatDay(state.deadline.date.iso,long)}`)); }
+  else condition.append(document.createTextNode(current.gaps.includes('deadlineRelative')?t.gapQuestions.deadlineRelative:t.noCountdown));
+  hero.append(condition);
+  const foot=element('div','hero-foot');
+  const sourceName=pdfInfo?.name || (current.sourceUrl?new URL(current.sourceUrl).hostname:(current.example?t.heroExample:t.heroPasted));
+  const src=element('span','hero-meta'); src.append(icon('pin','icon-sm'),document.createTextNode(` ${sourceName}`));
+  const day=element('span','hero-meta'); day.append(icon('calendar','icon-sm'),document.createTextNode(` ${t.heroToday} · ${formatDay(today,long)}`));
+  foot.append(src,day);
+  hero.append(foot);
+
+  // Highlights
+  const box=$('#highlights'); box.replaceChildren();
+  const tile=(className,title,iconName)=>{const node=element('article',`hl ${className}`);const head=element('div','hl-head');head.append(element('span','hl-title',title),icon(iconName,'icon-sm'));node.append(head);box.append(node);return node;};
+
+  // 1. Alerts by type: bar chart
+  const alerts=tile('hl-alerts',t.hlAlerts,'alert');
+  const counts={}; for(const signal of current.signals) if(!signal.unspecified) counts[signal.kind]=(counts[signal.kind]||0)+1;
+  const max=Math.max(1,...Object.values(counts));
+  const chart=element('div','bars'); chart.setAttribute('role','img');
+  chart.setAttribute('aria-label',Object.keys(t.signalNames).map((kind)=>`${t.signalNames[kind]}: ${counts[kind]||0}`).join(', '));
+  for(const kind of Object.keys(t.signalNames)){
+    const col=element('div',`bar bar-${kind}${counts[kind]?'':' is-zero'}`);
+    const fill=element('span','bar-fill'); fill.style.height=`${counts[kind]?Math.max(12,counts[kind]/max*100):4}%`;
+    col.title=`${t.signalNames[kind]}: ${counts[kind]||0}`;
+    col.append(element('b','bar-count',counts[kind]?String(counts[kind]):''),fill,element('span','bar-label',t.shortSignals[kind]));
+    chart.append(col);
+  }
+  const alertFoot=element('div','hl-value'); alertFoot.append(element('strong','',String(signalCount)),element('span','',t.tileSignals));
+  alerts.append(chart,alertFoot);
+
+  // 2. Preparation gauge (semicircle)
+  const gauge=tile('hl-gauge',t.hlReady,'check');
+  const gaugeSvg=svg('svg',{viewBox:'0 0 200 112',class:'gauge','aria-hidden':'true'},[
+    svg('defs',{},[svg('linearGradient',{id:'gaugeGrad',x1:'0',x2:'1',y1:'0',y2:'0'},[svg('stop',{offset:'0','stop-color':'#3c40ff'}),svg('stop',{offset:'1','stop-color':'#c7fc73'})])]),
+    svg('path',{d:'M20 100 A80 80 0 0 1 180 100',class:'gauge-track',pathLength:'100'}),
+    svg('path',{d:'M20 100 A80 80 0 0 1 180 100',class:'gauge-fill',pathLength:'100','stroke-dasharray':`${percent} 100`})
+  ]);
+  for(let i=0;i<=10;i++){ const [x1,y1]=arcPoint(i/10,100,100,66); const [x2,y2]=arcPoint(i/10,100,100,60); gaugeSvg.append(svg('line',{x1,y1,x2,y2,class:'gauge-tick'})); }
+  const gaugeValue=element('div','gauge-value'); gaugeValue.append(element('strong','',`${percent}%`),element('span','',total?`${done}/${total} ${t.tileReady}`:t.noReadyShort));
+  const gaugeWrap=element('div','gauge-wrap'); gaugeWrap.append(gaugeSvg,gaugeValue);
+  gaugeWrap.setAttribute('role','img'); gaugeWrap.setAttribute('aria-label',`${t.hlReady}: ${percent}%`);
+  gauge.append(gaugeWrap,element('p','hl-note',t.tileReadyNote));
+
+  // 3. Work window arc: from D-21 to the deadline, with today on the arc
+  const win=tile('hl-window',t.hlWindow,'calendar');
+  if(!state || state.countdown.passed){
+    win.classList.add('is-empty');
+    win.append(element('p','hl-note',state?t.countdownPassed:t.noCountdown));
+  } else {
+    const first=state.countdown.milestones[0].iso;
+    const span=Math.max(1,dayDiff(first,state.deadline.date.iso));
+    const fraction=dayDiff(first,today)/span;
+    const arc=svg('svg',{viewBox:'0 0 200 112',class:'window-arc','aria-hidden':'true'},[
+      svg('path',{d:'M20 100 A80 80 0 0 1 180 100',class:'arc-track'}),
+      svg('path',{d:'M20 100 A80 80 0 0 1 180 100',class:'arc-done',pathLength:'100','stroke-dasharray':`${Math.max(0,Math.min(1,fraction))*100} 100`})
+    ]);
+    for(const milestone of state.countdown.milestones){ const [x,y]=arcPoint(dayDiff(first,milestone.iso)/span); arc.append(svg('circle',{cx:x,cy:y,r:3.2,class:`arc-mark${milestone.past?' is-past':''}`})); }
+    const [ex,ey]=arcPoint(1); arc.append(svg('circle',{cx:ex,cy:ey,r:5,class:'arc-end'}));
+    const [tx,ty]=arcPoint(fraction); arc.append(svg('circle',{cx:tx,cy:ty,r:7,class:'arc-today'}),svg('circle',{cx:tx,cy:ty,r:12,class:'arc-glow'}));
+    arc.append(svg('line',{x1:10,y1:100,x2:190,y2:100,class:'arc-horizon'}));
+    const labels=element('div','arc-labels');
+    const a=element('span','');a.append(element('b','',t.hlWindowStart),document.createTextNode(formatDay(first)));
+    const b=element('span','');b.append(element('b','',t.categories.deadline),document.createTextNode(formatDay(state.deadline.date.iso)));
+    labels.append(a,b);
+    const stateText=fraction<0?t.windowBefore.replace('{date}',formatDay(first)):t.windowInside.replace('{n}',String(dayDiff(first,today)+1)).replace('{total}',String(span+1));
+    const wrap=element('div','arc-wrap'); wrap.setAttribute('role','img'); wrap.setAttribute('aria-label',`${t.hlWindow}: ${stateText}`); wrap.append(arc);
+    win.append(wrap,labels,element('p','hl-note',stateText));
+  }
+
+  // 4–6. Small tiles
+  const small=(className,title,iconName,value,note)=>{const node=tile(`hl-small ${className}`,title,iconName);const v=element('div','hl-value');v.append(element('strong','',value));if(note) v.append(element('span','',note));node.append(v);return node;};
+  small('hl-amount',t.tileAmount,'money',current.amounts[0]?.raw||'—',current.amounts.length>1?t.moreAmounts.replace('{n}',String(current.amounts.length-1)):current.amounts.length?'':t.tileNoAmount);
+  small(`hl-gaps${current.gaps.length?' is-alert':''}`,t.hlGaps,'question',String(current.gaps.length),current.gaps.length?t.gapNames[current.gaps[0]]:t.hlNoGaps);
+  const email=findContactEmails(nodes.text.value)[0];
+  small('hl-contact',t.hlContact,'mail',email?email.split('@')[0]+'@…':'—',email||t.hlNoContact).classList.toggle('is-alert',!email);
+
+  renderDocMap();
+  renderSectionNav();
+}
+
+function renderDocMap() {
+  const t=copy[language];
+  const card=$('#docMap');
+  cardHeader(card,'map-title',t.mapTitle,t.mapHint);
+  const lines=nodes.text.value.split('\n');
+  const n=lines.length;
+  const lead=new Map();
+  for(const item of current.items||[]) if(!lead.has(item.line)) lead.set(item.line,`cat-${item.category}`);
+  const alertLines=new Set((current.signals||[]).filter((signal)=>!signal.unspecified).map((signal)=>signal.line));
+  const W=1000, H=110, base=88;
+  const step=W/Math.max(n,1);
+  const map=svg('svg',{viewBox:`0 0 ${W} ${H}`,preserveAspectRatio:'none',class:'map-svg',role:'img','aria-label':t.mapAria.replace('{lines}',String(n)).replace('{alerts}',String(alertLines.size))});
+  lines.forEach((raw,index)=>{
+    const lineNo=index+1;
+    const len=raw.trim().length;
+    if(!len) return;
+    const alert=alertLines.has(lineNo);
+    const kind=alert?'cat-alert':(lead.get(lineNo)||'');
+    const h=alert?base-8:Math.max(6,Math.min(1,len/120)*(kind?62:38));
+    const width=Math.min(Math.max(step*0.72,1.2),14);
+    map.append(svg('rect',{x:(index*step+(step-width)/2).toFixed(2),y:(base-h).toFixed(2),width:width.toFixed(2),height:h.toFixed(2),rx:Math.min(3,width/3).toFixed(2),class:`map-bar ${kind}`}));
+  });
+  for(const line of alertLines){ const x=(line-0.5)*step; map.append(svg('circle',{cx:x.toFixed(2),cy:6,r:5,class:'map-pin'})); }
+  map.append(svg('line',{x1:0,y1:base+1,x2:W,y2:base+1,class:'map-base'}));
+  const pages=current.pages||[];
+  if(pages.length>1) pages.forEach((start,index)=>{ const x=(start-1)*step; map.append(svg('line',{x1:x,y1:base+1,x2:x,y2:H,class:'map-page'})); map.append(svg('text',{x:x+4,y:H-4,class:'map-page-label'},[document.createTextNode(`${t.pageShort} ${index+1}`)])); });
+  map.addEventListener('click',(event)=>{
+    const rect=map.getBoundingClientRect();
+    const line=Math.min(n,Math.max(1,Math.floor((event.clientX-rect.left)/rect.width*n)+1));
+    let target=line;
+    for(let d=0;d<6;d++){ if(lead.has(line+d)||alertLines.has(line+d)){target=line+d;break;} if(lead.has(line-d)||alertLines.has(line-d)){target=line-d;break;} }
+    focusLens(target);
+  });
+  const legend=element('div','map-legend');
+  legend.append(element('span','map-stat',t.mapStats.replace('{lines}',String(n)).replace('{found}',String(new Set([...lead.keys()]).size)).replace('{alerts}',String(alertLines.size))));
+  card.append(map,legend);
+}
+
+const NAV_SECTIONS=[['insightBoard','navSummary','compass'],['signalsCard','navAlerts','alert'],['gapsCard','navGaps','question'],['readinessCard','navReady','check'],['lens','navLens','lens'],['evidenceList','navPoints','list'],['planPanel','navPlan','plan']];
+let navObserver=null;
+function renderSectionNav() {
+  const t=copy[language];
+  const nav=$('#sectionNav'); nav.replaceChildren();
+  nav.setAttribute('aria-label',t.navLabel);
+  for(const [id,key,iconName] of NAV_SECTIONS){
+    const target=document.getElementById(id);
+    if(!target) continue;
+    const link=element('a','nav-link'); link.href=`#${id}`; link.dataset.target=id;
+    link.append(icon(iconName,'icon-sm'),element('span','',t[key]));
+    link.addEventListener('click',(event)=>{ event.preventDefault(); target.scrollIntoView({behavior:motion(),block:'start'}); });
+    nav.append(link);
+  }
+  navObserver?.disconnect();
+  // The active section is the last one whose top has passed 40% of the viewport.
+  const update=()=>{
+    const line=innerHeight*0.4;
+    let active=NAV_SECTIONS[0][0];
+    // The plan panel is sticky, so its position does not say where the reader is; it is never "passed".
+    // Cards side by side start at the same height; the first of them stays active.
+    let lastTop=-Infinity;
+    for(const [id] of NAV_SECTIONS){ if(id==='planPanel') continue; const target=document.getElementById(id); if(!target) continue; const top=target.getBoundingClientRect().top; if(top<=line && top>lastTop+2){ active=id; lastTop=top; } }
+    nav.classList.toggle('is-off',nodes.results.getBoundingClientRect().top>innerHeight*0.6);
+    nav.querySelectorAll('.nav-link').forEach((link)=>{ const on=link.dataset.target===active; link.classList.toggle('is-active',on); if(on) link.setAttribute('aria-current','true'); else link.removeAttribute('aria-current'); });
+  };
+  let timer=0;
+  const onScroll=()=>{ if(!timer) timer=setTimeout(()=>{ timer=0; update(); },60); };
+  addEventListener('scroll',onScroll,{passive:true});
+  navObserver={disconnect:()=>removeEventListener('scroll',onScroll)};
+  update();
+}
+
 function cardHeader(card,id,title,hint) {
   const head=element('div','card-head');
   const h=element('h4','',title); h.id=id;
@@ -368,19 +597,7 @@ function renderBoard() {
   const percent=total?Math.round(done/total*100):0;
   const signalCount=current.signals.filter((signal)=>!signal.unspecified).length;
 
-  // Snapshot tiles
-  const snapshot=$('#snapshot'); snapshot.replaceChildren();
-  const tile=(className,value,label,note)=>{const node=element('div',`tile ${className}`);node.append(element('strong','tile-value',value),element('span','tile-label',label));if(note) node.append(element('span','tile-note',note));snapshot.append(node);return node;};
-  if(!state) tile('tile-deadline is-empty','—',t.tileNoDeadline);
-  else if(state.countdown.passed) tile('tile-deadline is-warning','!',t.tilePassed,formatDay(state.deadline.date.iso,{day:'numeric',month:'long',year:'numeric'}));
-  else if(state.countdown.daysLeft===0) tile('tile-deadline is-warning','0',t.tileToday,t.tileDateFrom);
-  else tile('tile-deadline',String(state.countdown.daysLeft),state.countdown.daysLeft===1?t.tileDaysOne:t.tileDays,`${formatDay(state.deadline.date.iso,{day:'numeric',month:'long',year:'numeric'})} · ${t.tileDateFrom}`);
-  if(current.amounts.length) tile('tile-amount',current.amounts[0].raw,t.tileAmount,current.amounts.length>1?`+${current.amounts.length-1}`:'');
-  else tile('tile-amount is-empty','—',t.tileNoAmount);
-  tile(`tile-signals${signalCount?' is-alert':''}`,String(signalCount),t.tileSignals,current.gaps.length?`${current.gaps.length} ${t.tileGaps}`:'');
-  const readyTile=tile('tile-ready',`${percent}%`,`${done}/${total} ${t.tileReady}`,t.tileReadyNote);
-  readyTile.style.setProperty('--p',String(percent));
-  readyTile.prepend(element('span','ring'));
+  renderDashboard({state,total,done,percent,signalCount});
 
   // Alerts
   const signals=$('#signalsCard');
