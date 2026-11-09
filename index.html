@@ -25,7 +25,7 @@
       <dl class="hero-proof">
         <div><dt>10/10</dt><dd data-i18n="proofDeadlines">deadlines read correctly in 10 real lusophone notices</dd></div>
         <div><dt>0</dt><dd data-i18n="proofPrivacy">requests to a server: text and PDF stay in your browser</dd></div>
-        <div><dt>74</dt><dd data-i18n="proofTests">automated checks: 50 unit tests and 24 interface checks</dd></div>
+        <div><dt>82</dt><dd data-i18n="proofTests">automated checks: 55 unit tests and 27 interface checks</dd></div>
       </dl>
     </section>
 
@@ -75,8 +75,17 @@
         </div>
       </section>
 
+      <section class="card shortlist" id="shortlist" aria-labelledby="shortlist-title"></section>
+
       <details class="card fold lens" id="lens">
         <summary class="fold-summary"><span class="fold-title" id="lens-title" data-i18n="lensTitle">Evidence lens</span><span class="fold-meta" data-i18n="lensHint">Full text, line by line</span></summary>
+        <div class="lens-search" role="search">
+          <label class="sr-only" for="lensQuery" data-i18n="searchLabel">Search the notice</label>
+          <input type="search" id="lensQuery" autocomplete="off" spellcheck="false" data-i18n-placeholder="searchPlaceholder" placeholder="Search the notice">
+          <span class="lens-count" id="lensCount" aria-live="polite"></span>
+          <button type="button" class="icon-button is-prev" id="lensPrev" data-i18n-aria="searchPrev" aria-label="Previous match"></button>
+          <button type="button" class="icon-button is-next" id="lensNext" data-i18n-aria="searchNext" aria-label="Next match"></button>
+        </div>
         <div class="lens-legend" id="lensLegend"></div>
         <div class="lens-body" id="lensBody"></div>
       </details>

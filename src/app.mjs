@@ -3,6 +3,7 @@ import { createCalendarReference, createPlanCalendar } from './calendar.mjs';
 import { encodeWorkspace, decodeWorkspace } from './workspace.mjs';
 import { detectSignals, findAmounts, findGaps, buildChecklist, buildCountdown, explicitDeadlines, localIsoDay, findContactEmails } from './insights.mjs';
 import { readPdfFile, pageOfLine } from './pdf.mjs';
+import { textKey, titleFrom, summarize, upsert, sortEntries, toCsv } from './shortlist.mjs';
 
 const copy = {
   en: {
@@ -134,10 +135,27 @@ Object.assign(copy.pt, {
   navLabel:'Secções dos resultados', navSummary:'Resumo', navAlerts:'Alertas', navGaps:'Perguntas', navReady:'Preparação', navLens:'Lente', navPoints:'Excertos', navPlan:'Plano', deadlineDay:'Dia do prazo (lido do aviso)', briefSourceFile:'Ficheiro de origem', pagesWord:'páginas', briefPagesNote:'texto lido neste navegador'
 });
 
+Object.assign(copy.en, {
+  shortlistTitle:'Shortlist', shortlistAdd:'Add this call', shortlistUpdate:'Update in shortlist', shortlistAdded:'Call added to the shortlist.', shortlistRemoved:'Call removed from the shortlist.', shortlistCsv:'Download CSV',
+  shortlistEmpty:'Add calls as you review them to compare deadlines, alerts and readiness side by side.', shortlistNote:'Kept in this browser tab only. Reloading clears it; download the CSV to keep it.',
+  sortLabel:'Sort shortlist', sortDeadline:'Soonest deadline', sortAlerts:'Most alerts', sortGaps:'Most open questions', sortReadiness:'Most ready',
+  colCall:'Call', colDeadline:'Deadline', colDays:'Days left', colAmount:'Amount', colAlerts:'Alerts', colGaps:'Questions', colReadiness:'Readiness',
+  statusRelative:'Relative', statusUnclear:'Unclear', statusNone:'Not found', statusPassed:'Passed', daysShort:'d', remove:'Remove', untitled:'Untitled call', navShortlist:'Shortlist',
+  searchLabel:'Search the notice', searchPlaceholder:'Search the notice', searchPrev:'Previous match', searchNext:'Next match', searchNone:'No matches'
+});
+Object.assign(copy.pt, {
+  shortlistTitle:'Lista de candidaturas', shortlistAdd:'Adicionar esta chamada', shortlistUpdate:'Atualizar na lista', shortlistAdded:'Chamada adicionada à lista.', shortlistRemoved:'Chamada removida da lista.', shortlistCsv:'Descarregar CSV',
+  shortlistEmpty:'Junta as chamadas que fores revendo para comparar prazos, alertas e preparação lado a lado.', shortlistNote:'Fica só neste separador do navegador. Recarregar apaga a lista; descarrega o CSV para a guardar.',
+  sortLabel:'Ordenar lista', sortDeadline:'Prazo mais próximo', sortAlerts:'Mais alertas', sortGaps:'Mais perguntas', sortReadiness:'Mais preparada',
+  colCall:'Chamada', colDeadline:'Prazo', colDays:'Dias', colAmount:'Montante', colAlerts:'Alertas', colGaps:'Perguntas', colReadiness:'Preparação',
+  statusRelative:'Relativo', statusUnclear:'Por confirmar', statusNone:'Não detetado', statusPassed:'Passou', daysShort:'d', remove:'Remover', untitled:'Chamada sem título', navShortlist:'Lista',
+  searchLabel:'Pesquisar no aviso', searchPlaceholder:'Pesquisar no aviso', searchPrev:'Ocorrência anterior', searchNext:'Ocorrência seguinte', searchNone:'Sem resultados'
+});
+
 // Interface copy v4: shorter, quieter; explanations live in the "How to read" panel.
 Object.assign(copy.en, {
   eyebrow:'For creators and small teams', heroDescription:'Deadline, risks and open questions from any public call, each tied to its line.',
-  proofDeadlines:'deadlines read correctly in 10 real lusophone notices', proofPrivacy:'requests to a server: text and PDF stay in your browser', proofTests:'automated checks: 50 unit tests and 24 interface checks',
+  proofDeadlines:'deadlines read correctly in 10 real lusophone notices', proofPrivacy:'requests to a server: text and PDF stay in your browser', proofTests:'automated checks: 55 unit tests and 27 interface checks',
   workspaceEyebrow:'Workspace', urlLabel:'Official source link (optional)', urlHint:'Kept as a reference. Not fetched.', compareHint:'Textual differences, not legal conclusions.', pdfPrivacy:'PDFs are read in this browser. Nothing is uploaded.',
   reviewEyebrow:'Review', pointsFound:'excerpts', markedReviewed:'reviewed', openSource:'Original source', boardTitle:'Critical reading',
   infoTitle:'How to read these results', info1:'Every finding quotes the line it came from. Read it as a prompt, not a conclusion.', info2:'Nothing here decides eligibility. Readiness counts what you ticked.', info3:'“Not detected” means not found in the text you supplied, never that it does not exist.', info4:'Milestones are planning suggestions, not dates set by the organiser. Dates are never invented.',
@@ -153,7 +171,7 @@ Object.assign(copy.en, {
 });
 Object.assign(copy.pt, {
   eyebrow:'Para criadores e pequenas equipas', heroDescription:'Prazo, riscos e perguntas em aberto de qualquer chamada pública, cada um ligado à sua linha.',
-  proofDeadlines:'prazos lidos corretamente em 10 avisos reais lusófonos', proofPrivacy:'pedidos a servidores: texto e PDF ficam no teu navegador', proofTests:'verificações automáticas: 50 testes unitários e 24 de interface',
+  proofDeadlines:'prazos lidos corretamente em 10 avisos reais lusófonos', proofPrivacy:'pedidos a servidores: texto e PDF ficam no teu navegador', proofTests:'verificações automáticas: 55 testes unitários e 27 de interface',
   workspaceEyebrow:'Espaço de trabalho', urlLabel:'Ligação à fonte oficial (opcional)', urlHint:'Fica como referência. Não é consultada.', compareHint:'Diferenças de texto, não conclusões jurídicas.', pdfPrivacy:'Os PDFs são lidos neste navegador. Nada é carregado.',
   reviewEyebrow:'Revisão', pointsFound:'excertos', markedReviewed:'revistos', openSource:'Fonte original', boardTitle:'Leitura crítica',
   infoTitle:'Como ler estes resultados', info1:'Cada ponto cita a linha de onde veio. Lê-o como pista, não como conclusão.', info2:'Nada aqui decide elegibilidade. A preparação conta o que marcaste.', info3:'“Não detetado” significa não encontrado no texto fornecido, nunca que não existe.', info4:'Os marcos são sugestões de planeamento, não datas da organização. Nenhuma data é inventada.',
@@ -180,6 +198,10 @@ let pdfInfo=null;
 let planKey='standard';
 let alertView='type';
 let mapFilter='all';
+let shortlist=[];
+let shortlistSort='deadline';
+let searchHits=[];
+let searchIndex=-1;
 
 function setLanguage(next) {
   language=next;
@@ -193,6 +215,7 @@ function setLanguage(next) {
     } else if(typeof t[key]==='string') node.textContent=t[key];
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach((node)=>{node.placeholder=t[node.dataset.i18nPlaceholder]});
+  document.querySelectorAll('[data-i18n-aria]').forEach((node)=>{if(t[node.dataset.i18nAria]) node.setAttribute('aria-label',t[node.dataset.i18nAria])});
   document.querySelectorAll('[data-lang]').forEach((node)=>node.setAttribute('aria-pressed',String(node.dataset.lang===next)));
   renderPdfStatus();
   if(current) renderResults();
@@ -350,6 +373,7 @@ function renderLens() {
     fragment.append(row);
   });
   body.append(fragment);
+  applySearch();
 }
 
 function contactEmail() {
@@ -420,6 +444,116 @@ function svgText(x,y,text,className,anchor='start') {
 }
 function dayDiff(a,b) {
   return Math.round((Date.parse(`${b}T00:00:00Z`)-Date.parse(`${a}T00:00:00Z`))/86400000);
+}
+
+function renderShortlist() {
+  const t=copy[language];
+  const card=$('#shortlist'); if(!card) return;
+  card.replaceChildren();
+  const head=element('div','card-head');
+  const h=element('h4','',t.shortlistTitle); h.id='shortlist-title';
+  head.append(h,element('span','card-meta',shortlist.length?`${shortlist.length}`:''));
+  card.append(head);
+  const tools=element('div','shortlist-tools');
+  const inList=current && shortlist.some((entry)=>entry.key===textKey(nodes.text.value));
+  const add=element('button','button button-light button-sm',inList?t.shortlistUpdate:t.shortlistAdd); add.type='button'; add.id='shortlistAdd';
+  add.disabled=!current;
+  add.addEventListener('click',()=>{ if(!current) return; shortlist=upsert(shortlist,currentSummary()); renderShortlist(); nodes.announcement.textContent=t.shortlistAdded; $('#shortlistAdd')?.focus(); });
+  tools.append(add);
+  if(shortlist.length){
+    tools.append(selectControl('shortlistSort',t.sortLabel,[['deadline',t.sortDeadline],['alerts',t.sortAlerts],['gaps',t.sortGaps],['readiness',t.sortReadiness]],shortlistSort,(value)=>{shortlistSort=value;renderShortlist();}));
+    const csv=element('button','button button-outline button-sm',t.shortlistCsv); csv.type='button'; csv.id='shortlistCsv';
+    csv.addEventListener('click',()=>downloadFile(toCsv(sortEntries(shortlist,shortlistSort),{title:t.colCall,deadline:t.colDeadline,daysLeft:t.colDays,amount:t.colAmount,alerts:t.colAlerts,gaps:t.colGaps,readiness:t.colReadiness,example:t.heroExample,status:{explicit:'',relative:t.statusRelative,unclear:t.statusUnclear,none:t.statusNone}}),'text/csv;charset=utf-8','opportunity-shortlist.csv'));
+    tools.append(csv);
+  }
+  card.append(tools);
+  if(!shortlist.length){ card.append(element('p','card-empty',t.shortlistEmpty)); return; }
+  const entries=sortEntries(shortlist,shortlistSort);
+  const today=localIsoDay();
+  const horizon=Math.max(28,...entries.filter((e)=>e.daysLeft!==null&&e.daysLeft>=0).map((e)=>e.daysLeft));
+  const scale=element('div','gantt-scale');
+  const ticks=4;
+  for(let i=0;i<=ticks;i++){ const d=Math.round(horizon*i/ticks); const tick=element('span','',i===0?t.heroToday:`+${d} ${t.daysShort}`); tick.style.left=`${i/ticks*100}%`; scale.append(tick); }
+  const gantt=element('div','gantt'); gantt.setAttribute('role','list'); gantt.setAttribute('aria-label',t.shortlistTitle);
+  const scaleTrack=element('div','gantt-track'); scaleTrack.append(scale,element('span','gantt-label',''));
+  const scaleRow=element('div','gantt-row is-scale'); scaleRow.append(element('span','gantt-title',''),scaleTrack); gantt.append(scaleRow);
+  const currentKey=current?textKey(nodes.text.value):null;
+  const status=(entry)=>entry.deadline?(entry.daysLeft<0?t.statusPassed:`${entry.daysLeft} ${t.daysShort}`):({relative:t.statusRelative,unclear:t.statusUnclear,none:t.statusNone})[entry.deadlineStatus];
+  for(const entry of entries){
+    const row=element('div',`gantt-row${entry.key===currentKey?' is-current':''}`); row.setAttribute('role','listitem');
+    row.append(element('span','gantt-title',entry.title));
+    const track=element('div','gantt-track');
+    const area=element('div','gantt-area');
+    if(entry.deadline && entry.daysLeft>=0){
+      const bar=element('span','gantt-bar'); bar.style.width=`${Math.max(1.5,entry.daysLeft/horizon*100)}%`;
+      const dot=element('span','gantt-dot'); dot.style.left=`${entry.daysLeft/horizon*100}%`;
+      area.append(bar,dot);
+    } else { track.classList.add('is-undated'); area.append(element('span','gantt-undated',status(entry))); }
+    track.append(area,element('span','gantt-label',entry.deadline?status(entry):'—'));
+    row.append(track);
+    gantt.append(row);
+  }
+  card.append(gantt);
+  const table=element('table','shortlist-table');
+  const thead=element('thead'); const hr=element('tr');
+  for(const label of [t.colCall,t.colDeadline,t.colAmount,t.colAlerts,t.colGaps,t.colReadiness,'']) { const th=element('th','',label); th.scope='col'; hr.append(th); }
+  thead.append(hr); table.append(thead);
+  const tbody=element('tbody');
+  for(const entry of entries){
+    const tr=element('tr',entry.key===currentKey?'is-current':'');
+    const cell=(label,value,className='')=>{const td=element('td',className,value);td.dataset.label=label;tr.append(td);};
+    cell(t.colCall,entry.title+(entry.example?` · ${t.heroExample}`:''),'col-title');
+    cell(t.colDeadline,entry.deadline?formatDay(entry.deadline,{day:'numeric',month:'short',year:'numeric'}):status(entry));
+    cell(t.colAmount,entry.amount||'—');
+    cell(t.colAlerts,String(entry.alerts),entry.alerts?'is-flag':'');
+    cell(t.colGaps,String(entry.gaps));
+    cell(t.colReadiness,entry.readiness===null?'—':`${entry.readiness}%`);
+    const td=element('td','col-action'); const remove=element('button','text-action',t.remove); remove.type='button';
+    remove.setAttribute('aria-label',`${t.remove}: ${entry.title}`);
+    remove.addEventListener('click',()=>{ shortlist=shortlist.filter((existing)=>existing.key!==entry.key); renderShortlist(); nodes.announcement.textContent=t.shortlistRemoved; $('#shortlistAdd')?.focus(); });
+    td.append(remove); tr.append(td);
+    tbody.append(tr);
+  }
+  table.append(tbody);
+  const wrap=element('div','table-wrap'); wrap.append(table);
+  card.append(wrap,element('p','card-foot',t.shortlistNote));
+}
+
+// Lens search: accent- and case-insensitive, highlights matches and steps through them.
+function normalizeWithMap(text) {
+  let normalized=''; const map=[];
+  for(let i=0;i<text.length;i++){ const plain=text[i].normalize('NFD').replace(/\p{M}/gu,'').toLowerCase(); for(const ch of plain){ normalized+=ch; map.push(i); } }
+  return {normalized,map};
+}
+
+function applySearch(step=0) {
+  const t=copy[language];
+  const input=$('#lensQuery'); const count=$('#lensCount');
+  if(!input||!count) return;
+  const query=input.value.trim().normalize('NFD').replace(/\p{M}/gu,'').toLowerCase();
+  for(const row of document.querySelectorAll('#lensBody .lens-line')){
+    const text=row.querySelector('.lens-text');
+    if(text.dataset.raw===undefined) text.dataset.raw=text.textContent;
+    const raw=text.dataset.raw;
+    text.replaceChildren(document.createTextNode(raw));
+    row.classList.remove('is-match');
+    if(query.length<2) continue;
+    const {normalized,map}=normalizeWithMap(raw);
+    let from=0, index, last=0; const parts=[];
+    while((index=normalized.indexOf(query,from))!==-1){
+      const start=map[index], end=map[index+query.length-1]+1;
+      if(start>last) parts.push(document.createTextNode(raw.slice(last,start)));
+      parts.push(element('mark','lens-mark',raw.slice(start,end)));
+      last=end; from=index+query.length;
+    }
+    if(parts.length){ if(last<raw.length) parts.push(document.createTextNode(raw.slice(last))); text.replaceChildren(...parts); row.classList.add('is-match'); }
+  }
+  searchHits=[...document.querySelectorAll('#lensBody .lens-mark')];
+  if(!searchHits.length){ searchIndex=-1; count.textContent=query.length>=2?t.searchNone:''; return; }
+  searchIndex=step===0?0:(searchIndex+step+searchHits.length)%searchHits.length;
+  searchHits.forEach((mark,i)=>mark.classList.toggle('is-current',i===searchIndex));
+  count.textContent=`${searchIndex+1} / ${searchHits.length}`;
+  if(step!==0||document.activeElement===input){ const lens=$('#lens'); if(lens&&!lens.open) lens.open=true; const mark=searchHits[searchIndex]; const body=$('#lensBody'); body.scrollTo({top:Math.max(0,mark.closest('.lens-line').offsetTop-body.clientHeight/2),behavior:motion()}); }
 }
 
 // A native <select>, styled, so keyboard and screen readers work everywhere.
@@ -626,12 +760,22 @@ function renderDocMap() {
     const lens=$('#lens'); if(lens && !lens.open) lens.open=true;
     focusLens(target);
   });
+  // Keyboard: Enter or Space opens the lens on the first line that matches the filter.
+  map.tabIndex=0;
+  map.addEventListener('keydown',(event)=>{
+    if(event.key!=='Enter' && event.key!==' ') return;
+    event.preventDefault();
+    let first=0; for(let line=1;line<=n;line++) if(matches(line)){first=line;break;}
+    if(!first) return;
+    const lens=$('#lens'); if(lens && !lens.open) lens.open=true;
+    focusLens(first);
+  });
   const legend=element('div','legend');
   legend.append(element('span','key key-accent',`${shown} ${t.mapShown}`),element('span','key key-muted',`${n} ${t.mapLines}`));
   card.append(map,legend);
 }
 
-const NAV_SECTIONS=[['insightBoard','navSummary'],['signalsCard','navAlerts'],['gapsCard','navGaps'],['readinessCard','navReady'],['lens','navLens'],['evidenceList','navPoints'],['planPanel','navPlan']];
+const NAV_SECTIONS=[['insightBoard','navSummary'],['signalsCard','navAlerts'],['gapsCard','navGaps'],['readinessCard','navReady'],['shortlist','navShortlist'],['lens','navLens'],['evidenceList','navPoints'],['planPanel','navPlan']];
 let navObserver=null;
 function renderSectionNav() {
   const t=copy[language];
@@ -662,6 +806,17 @@ function renderSectionNav() {
   update();
 }
 
+function currentSummary() {
+  const t=copy[language];
+  return summarize({text:nodes.text.value,title:pdfInfo?.name?titleFrom(nodes.text.value,pdfInfo.name):titleFrom(nodes.text.value,t.untitled),analysis:current,ready:current.checklist.filter((entry)=>ready.has(entry.id)).length,today:localIsoDay(),example:current.example});
+}
+
+function syncShortlist() {
+  if(!current) return;
+  const key=textKey(nodes.text.value);
+  if(shortlist.some((entry)=>entry.key===key)) { shortlist=upsert(shortlist,currentSummary()); renderShortlist(); }
+}
+
 function renderBoard() {
   const t=copy[language];
   const hasPrevious=Boolean(nodes.previous.value.trim());
@@ -672,6 +827,7 @@ function renderBoard() {
   const signalCount=current.signals.filter((signal)=>!signal.unspecified).length;
 
   renderDashboard({state,total,done,percent,signalCount});
+  syncShortlist();
 
   // Alerts
   const signals=$('#signalsCard');
@@ -812,6 +968,7 @@ function renderResults() {
   renderBoard();
   renderLens();
   renderKit();
+  renderShortlist();
 }
 
 function briefText() {
@@ -951,4 +1108,8 @@ $('#exportButton').addEventListener('click',()=>{
   downloadFile(briefText(),'text/plain;charset=utf-8','dua-opportunity-brief.txt');
 });
 $('#printButton').addEventListener('click',()=>{if(current) window.print()});
+$('#lensQuery').addEventListener('input',()=>applySearch(0));
+$('#lensQuery').addEventListener('keydown',(event)=>{ if(event.key==='Enter'){ event.preventDefault(); applySearch(event.shiftKey?-1:1); } if(event.key==='Escape'){ event.target.value=''; applySearch(0); } });
+$('#lensPrev').addEventListener('click',()=>applySearch(-1));
+$('#lensNext').addEventListener('click',()=>applySearch(1));
 setLanguage('en');

@@ -23,7 +23,9 @@ It is an independent prototype by [2 LADOS / DUA](https://dua.2lados.pt). It run
    - One calendar file with every milestone and the deadline day.
    - An e-mail draft with your questions, opened in your own mail app.
    - A plain-text brief, or print to PDF.
-5. **Compare versions** and **save a working copy** (text, notes, review state, checklist, page map) as a local file you can reopen later.
+5. **Shortlist**: add each call you review and compare them in one timeline and table (deadline, amount, alerts, open questions, readiness), sorted by a dropdown, and download it as CSV. It lives in this tab only.
+6. **Search the notice** inside the evidence lens, accent- and case-insensitive, with next and previous.
+7. **Compare versions** and **save a working copy** (text, notes, review state, checklist, page map) as a local file you can reopen later.
 
 Interface in English and Portuguese; notices in English and Portuguese (PT-PT, PT-BR and African Portuguese usage).
 
@@ -39,8 +41,8 @@ Open `http://127.0.0.1:3000/` and click **Try the example**. The fictional examp
 
 ## Evidence that it works
 
-- **Interface check**: serve the folder and open `/tests/ui.html`. It loads the app and operates every control: language, validation, the example, the three dropdowns, the map, the lens, review, notes, both calendars, the checklist, copying questions, the e-mail draft, the brief, print, saving and reopening a working copy, version comparison, section navigation, PDF import and the layout. Downloads, clipboard and print are intercepted. Last run: 24 of 24 passed.
-- **Unit tests**: run `node --test tests/*.test.mjs` with Node 20+ (50 tests). They cover dates, periods, deadline ranking, alerts, gaps, checklist, countdown, calendar files, PDF line rebuilding (using items captured from pdf.js), working copies, and a privacy check that fails if application code gains a network call or a remote script.
+- **Interface check**: serve the folder and open `/tests/ui.html`. It loads the app and operates every control: language, validation, the example, the three dropdowns, the map, the lens, review, notes, both calendars, the checklist, copying questions, the e-mail draft, the brief, print, saving and reopening a working copy, version comparison, section navigation, PDF import and the layout. Downloads, clipboard and print are intercepted. It also covers the shortlist, lens search and keyboard use of the notice map. Last run: 27 of 27 passed.
+- **Unit tests**: run `node --test tests/*.test.mjs` with Node 20+ (55 tests). They cover dates, periods, deadline ranking, alerts, gaps, checklist, countdown, calendar files, PDF line rebuilding (using items captured from pdf.js), working copies, and a privacy check that fails if application code gains a network call or a remote script.
 - **Real notices**: [docs/EVALUATION.md](docs/EVALUATION.md) records a run over 10 public calls from Portugal, Brazil, Cabo Verde, Moçambique and the CPLP (117 pages).
   - The first run found the right deadline in 1 of 10 notices. After the fixes it documents, all 10 are handled correctly: 7 dates, 2 relative deadlines named as such, and 1 incomplete date that is refused.
   - Of 25 alerts, 22 point to a clause worth reading, 2 are weaker than labelled and 1 is a false positive. Recall was not measured.
@@ -77,10 +79,11 @@ src/analysis.mjs            excerpts, dates, periods, deadline scoring, version 
 src/insights.mjs            alerts, gaps, amounts, checklist, countdown
 src/pdf.mjs                 local PDF text layer → lines, columns, page map
 src/calendar.mjs            RFC 5545 all-day references and milestone calendars
+src/shortlist.mjs           shortlist summaries, sorting and safe CSV
 src/workspace.mjs           local working-copy format (validated)
 src/app.mjs                 interface wiring
 vendor/pdfjs/               pdf.js 6.5.438 (Apache-2.0), unmodified
-tests/                      node:test suites and a captured pdf.js fixture
+tests/                      node:test suites, a captured pdf.js fixture and ui.html (interface check)
 scripts/evaluate-corpus.mjs metrics-only evaluation over your own PDFs
 docs/EVALUATION.md          real-notice evaluation
 .kiro/                      spec, steering, agent and hooks

@@ -81,9 +81,26 @@ A deterministic board shown above the excerpt list. Every element is either a qu
 - The full supplied text is shown line by line with line numbers and PDF page separators. Lines with findings are coloured by category; lines with alerts are highlighted.
 - Clicking a highlighted line jumps to its finding; every finding has a "Show in text" link back to its line.
 
+### 10b. Dashboard controls
+- Alerts chart: dropdown between counts by type and counts by page (or by tenth of the text when there is no PDF page map).
+- Plan: dropdown between 2-week (D−10…D−1), 3-week (D−21…D−1) and 6-week (D−42…D−2) suggested plans; the choice drives the timeline, the milestone calendar and the brief.
+- Notice map: dropdown filter by alerts or by category; clicking, or pressing Enter on the focused map, opens the lens at the nearest matching line.
+
 ### 11. Application Kit
 - **Calendar with milestones**: one .ics file with all-day entries for the remaining suggested milestones (labelled SUGGESTED) and the deadline day from the notice. Available only after the user marks the deadline excerpt reviewed, and never for a passed date.
 - **E-mail draft**: a `mailto:` link that opens the user's own e-mail app with the questions from the gaps. If exactly one e-mail address appears in the text it is used as recipient; otherwise the recipient is left empty. The page sends nothing.
+
+### 13. Shortlist
+- After an analysis the user may add the call to a shortlist kept in memory for this tab only (no browser storage, nothing sent). Re-adding the same text updates its row; at most 30 calls.
+- Each row: title (first line of the text, without a fictional-example prefix), deadline or its state (relative, unclear, not found), days left, first amount quoted, number of firm alerts, number of open questions and readiness. Readiness of the current call follows the checklist live.
+- A timeline shows every dated call from today to its deadline; undated calls are listed without a bar. A dropdown sorts by soonest deadline, most alerts, most open questions or most ready.
+- A CSV can be downloaded for spreadsheets. Cells starting with =, +, - or @ are prefixed with an apostrophe so they cannot run as formulas.
+
+### 14. Lens Search
+- A search box in the evidence lens finds text case- and accent-insensitively ("licença" finds "licenca"), highlights every match, shows "current / total" and steps with buttons, Enter and Shift+Enter. Escape clears it.
+
+### 15. Interface Check
+- `tests/ui.html` loads the app in a frame and operates every control (dropdowns, map, lens, search, review, notes, calendars, checklist, clipboard, e-mail draft, brief, print, working copy, comparison, shortlist, navigation, PDF import, language). Downloads, clipboard and print are intercepted.
 
 ### 12. Evaluation
 - `scripts/evaluate-corpus.mjs` runs the engine over a folder of PDFs and prints metrics only. `docs/EVALUATION.md` records a run over 10 public lusophone notices and the fixes it led to. Recall of alerts is not measured.

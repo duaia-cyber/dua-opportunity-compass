@@ -235,8 +235,65 @@ await check('Working copy saves and reopens review, note and checklist', async (
   const transfer = new win.DataTransfer();
   transfer.items.add(new win.File([saved], 'copy.json', { type: 'application/json' }));
   const input = $('#workspaceFile'); input.files = transfer.files; input.dispatchEvent(new win.Event('change', { bubbles: true }));
-  await until(() => $('#reviewedCount').textContent === '1', 'review restored');
+  assert($('#results').hidden, 'editing the text should clear the results');
+  // Wait for the reopened copy to render; the old counter is still in the hidden DOM.
+  await until(() => !$('#results').hidden && $('#reviewedCount').textContent === '1', 'review restored');
   assert($$('.ready-item input:checked').length === 1, 'checklist not restored');
+});
+
+await check('Lens search counts matches, ignores accents and steps through them', async () => {
+  const input = $('#lensQuery');
+  input.value = 'APPLICATIONS'; input.dispatchEvent(new win.Event('input', { bubbles: true }));
+  const total = $$('.lens-mark').length;
+  assert(total >= 2, `found ${total}`);
+  assert($('#lensCount').textContent === `1 / ${total}`, `counter ${$('#lensCount').textContent}`);
+  $('#lensNext').click();
+  assert($('#lensCount').textContent === `2 / ${total}`, 'next did not advance');
+  $('#lensPrev').click(); $('#lensPrev').click();
+  assert($('#lensCount').textContent === `${total} / ${total}`, 'previous did not wrap');
+  input.value = 'licença'; input.dispatchEvent(new win.Event('input', { bubbles: true }));
+  const accented = $$('.lens-mark').length;
+  input.value = 'licence'; input.dispatchEvent(new win.Event('input', { bubbles: true }));
+  assert($$('.lens-mark').length >= 1, 'licence not found');
+  input.value = ''; input.dispatchEvent(new win.Event('input', { bubbles: true }));
+  assert($$('.lens-mark').length === 0, 'marks not cleared');
+  return `${total} matches for "applications"`;
+});
+
+await check('Notice map opens the lens from the keyboard', async () => {
+  setSelect('mapFilter', 'alert');
+  const map = $('.map-svg');
+  map.focus();
+  map.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  await sleep(150);
+  assert($('#lens').open, 'lens closed');
+  assert(doc.activeElement?.classList.contains('cat-alert'), 'first alert line not focused');
+  setSelect('mapFilter', 'all');
+});
+
+await check('Shortlist adds, sorts, exports and removes calls', async () => {
+  assert($('.shortlist .card-empty'), 'empty state missing');
+  $('#shortlistAdd').click();
+  assert($$('.gantt-row:not(.is-scale)').length === 1, 'first call not added');
+  assert($('#shortlistAdd').textContent.length > 0, 'add button missing');
+  $('#shortlistAdd').click();
+  assert($$('.gantt-row:not(.is-scale)').length === 1, 'same call added twice');
+  // A second call: the Portuguese example.
+  $('[data-lang=pt]').click(); $('#demoButton').click();
+  await until(() => $('#sourceText').value.startsWith('EXEMPLO'), 'pt example');
+  $('#shortlistAdd').click();
+  assert($$('.shortlist-table tbody tr').length === 2, 'second call not added');
+  setSelect('shortlistSort', 'alerts');
+  assert($('#shortlistSort').value === 'alerts', 'sort not applied');
+  $('#shortlistCsv').click();
+  await sleep(150);
+  const csv = [...downloads].reverse().find((d) => d.type?.startsWith('text/csv'));
+  assert(csv && csv.text.split('\r\n').filter(Boolean).length === 3, 'CSV rows');
+  assert(csv.text.includes('2026-12-04'), 'CSV deadline');
+  $$('.shortlist-table .col-action button')[1].click();
+  assert($$('.shortlist-table tbody tr').length === 1, 'remove failed');
+  $('[data-lang=en]').click();
+  return 'add · dedupe · sort · CSV · remove';
 });
 
 await check('Version comparison lists added and removed lines', async () => {
