@@ -108,3 +108,16 @@ test('avoids common false alerts found in real notices', () => {
   const real = 'O prémio será pago por transferência bancária no prazo de 60 dias após a conclusão do concurso.\nThe award will be paid by bank transfer within 60 days.\nOs apoios não cobrem a totalidade das despesas da deslocação.';
   assert.deepEqual(kinds(real), ['payment', 'payment', 'match']);
 });
+
+test('offers compact, standard and extended plans and falls back to standard', async () => {
+  const { PLANS } = await import('../src/insights.mjs');
+  assert.deepEqual(Object.keys(PLANS), ['compact', 'standard', 'extended']);
+  const compact = buildCountdown({ iso: '2026-12-04', today: '2026-11-25', plan: 'compact' });
+  assert.deepEqual(compact.milestones.map((m) => [m.iso, m.past]), [['2026-11-24', true], ['2026-11-27', false], ['2026-11-30', false], ['2026-12-02', false], ['2026-12-03', false]]);
+  const extended = buildCountdown({ iso: '2026-12-04', today: '2026-11-25', plan: 'extended' });
+  assert.equal(extended.milestones[0].iso, '2026-10-23');
+  assert.equal(extended.milestones.at(-1).offset, 2);
+  const unknown = buildCountdown({ iso: '2026-12-04', today: '2026-11-25', plan: 'tomorrow' });
+  assert.equal(unknown.plan, 'standard');
+  assert.equal(unknown.milestones[0].offset, 21);
+});

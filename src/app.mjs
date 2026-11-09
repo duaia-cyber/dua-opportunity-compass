@@ -112,7 +112,7 @@ Object.assign(copy.en, {
   heroNoDeadlineBadge:'Deadline not confirmed', heroCloses:'Closes', heroToday:'Today', heroExample:'Fictional example', heroPasted:'Pasted text',
   hlAlerts:'Alerts by type', hlReady:'Preparation', hlWindow:'Work window', hlWindowStart:'Start', hlGaps:'Open questions', hlNoGaps:'None detected', hlContact:'Contact', hlNoContact:'No e-mail detected', noReadyShort:'no checklist', moreAmounts:'+{n} more in the text',
   windowBefore:'Preparation starts {date}', windowInside:'Day {n} of {total} of the work window',
-  shortSignals:{rights:'Rights',exclusivity:'Excl.',fee:'Fee',unpaid:'Unpaid',payment:'Pay',exclusion:'Out',match:'Co-fin'},
+  shortSignals:{rights:'Rights',exclusivity:'Exclusive',fee:'Entry fee',unpaid:'Unpaid',payment:'Payment',exclusion:'Exclusion',match:'Co-funding'},
   mapTitle:'Notice map', mapHint:'Each bar is a line. Tall red bars are alerts. Click to read.', mapAria:'Map of {lines} lines with {alerts} alert lines', mapStats:'{lines} lines · {found} with findings · {alerts} alerts',
   navLabel:'Results sections', navSummary:'Summary', navAlerts:'Alerts', navGaps:'Questions', navReady:'Readiness', navLens:'Lens', navPoints:'Excerpts', navPlan:'Plan', deadlineDay:'Deadline day (from the notice)', briefSourceFile:'Source file', pagesWord:'pages', briefPagesNote:'text read in this browser'
 });
@@ -129,9 +129,43 @@ Object.assign(copy.pt, {
   heroNoDeadlineBadge:'Prazo por confirmar', heroCloses:'Fecha a', heroToday:'Hoje', heroExample:'Exemplo fictício', heroPasted:'Texto colado',
   hlAlerts:'Alertas por tipo', hlReady:'Preparação', hlWindow:'Janela de trabalho', hlWindowStart:'Início', hlGaps:'Perguntas em aberto', hlNoGaps:'Nenhuma detetada', hlContact:'Contacto', hlNoContact:'Sem email detetado', noReadyShort:'sem checklist', moreAmounts:'+{n} no texto',
   windowBefore:'A preparação começa a {date}', windowInside:'Dia {n} de {total} da janela de trabalho',
-  shortSignals:{rights:'Direitos',exclusivity:'Exclus.',fee:'Taxa',unpaid:'S/ pago',payment:'Pagam.',exclusion:'Exclusão',match:'Cofin.'},
+  shortSignals:{rights:'Direitos',exclusivity:'Exclusivo',fee:'Taxa',unpaid:'Não pago',payment:'Pagamento',exclusion:'Exclusão',match:'Cofinanc.'},
   mapTitle:'Mapa do aviso', mapHint:'Cada barra é uma linha. As barras vermelhas altas são alertas. Clica para ler.', mapAria:'Mapa de {lines} linhas com {alerts} linhas de alerta', mapStats:'{lines} linhas · {found} com pontos · {alerts} alertas',
   navLabel:'Secções dos resultados', navSummary:'Resumo', navAlerts:'Alertas', navGaps:'Perguntas', navReady:'Preparação', navLens:'Lente', navPoints:'Excertos', navPlan:'Plano', deadlineDay:'Dia do prazo (lido do aviso)', briefSourceFile:'Ficheiro de origem', pagesWord:'páginas', briefPagesNote:'texto lido neste navegador'
+});
+
+// Interface copy v4: shorter, quieter; explanations live in the "How to read" panel.
+Object.assign(copy.en, {
+  eyebrow:'For creators and small teams', heroDescription:'Deadline, risks and open questions from any public call, each tied to its line.',
+  proofDeadlines:'deadlines read correctly in 10 real lusophone notices', proofPrivacy:'requests to a server: text and PDF stay in your browser', proofTests:'automated checks: 50 unit tests and 24 interface checks',
+  workspaceEyebrow:'Workspace', urlLabel:'Official source link (optional)', urlHint:'Kept as a reference. Not fetched.', compareHint:'Textual differences, not legal conclusions.', pdfPrivacy:'PDFs are read in this browser. Nothing is uploaded.',
+  reviewEyebrow:'Review', pointsFound:'excerpts', markedReviewed:'reviewed', openSource:'Original source', boardTitle:'Critical reading',
+  infoTitle:'How to read these results', info1:'Every finding quotes the line it came from. Read it as a prompt, not a conclusion.', info2:'Nothing here decides eligibility. Readiness counts what you ticked.', info3:'“Not detected” means not found in the text you supplied, never that it does not exist.', info4:'Milestones are planning suggestions, not dates set by the organiser. Dates are never invented.',
+  evidenceTitle:'Excerpts', evidenceHint:'Mark each one reviewed', lensHint:'Full text, line by line', noEvidence:'No matching excerpts. Check the source manually; absence here does not mean a requirement does not exist.',
+  planStep:'Plan', planInitial:'Review in progress', planSmall:'Nothing is sent. Files are created on this device.',
+  connectionLabel:'DUA Lab', connectionDescription:'An independent prototype exploring a future companion to DUA Radar Cultural. Not connected to DUA accounts or data.', footerText:'Independent Kiroween prototype', backToTop:'Back to top',
+  statusReviewed:'Reviewed', statusRead:'Read from the text', statusMissing:'Not confirmed', daysAgo:'days since this date', contactFound:'Found',
+  hlAlerts:'Alerts', alertViewLabel:'Alert view', byType:'By type', byPage:'By page', byPosition:'Across the text', legendFindings:'Findings', legendAlerts:'Alerts', tileSignals:'clauses to read carefully',
+  hlReady:'Readiness', notEligibility:'Preparation only. Not an eligibility decision.', tileReady:'ready',
+  countdownTitle:'Plan to the deadline', planLabel:'Working plan', planCompact:'2 weeks', planStandard:'3 weeks', planExtended:'6 weeks', suggestionsOnly:'Suggested milestones, not organiser dates.',
+  mapTitle:'Notice map', mapAll:'All findings', mapFilterLabel:'Show on map', mapShown:'lines shown', mapLines:'lines',
+  signalsTitle:'Alerts for creative work', gapsTitle:'Questions for the organiser', readyTitle:'Readiness checklist'
+});
+Object.assign(copy.pt, {
+  eyebrow:'Para criadores e pequenas equipas', heroDescription:'Prazo, riscos e perguntas em aberto de qualquer chamada pública, cada um ligado à sua linha.',
+  proofDeadlines:'prazos lidos corretamente em 10 avisos reais lusófonos', proofPrivacy:'pedidos a servidores: texto e PDF ficam no teu navegador', proofTests:'verificações automáticas: 50 testes unitários e 24 de interface',
+  workspaceEyebrow:'Espaço de trabalho', urlLabel:'Ligação à fonte oficial (opcional)', urlHint:'Fica como referência. Não é consultada.', compareHint:'Diferenças de texto, não conclusões jurídicas.', pdfPrivacy:'Os PDFs são lidos neste navegador. Nada é carregado.',
+  reviewEyebrow:'Revisão', pointsFound:'excertos', markedReviewed:'revistos', openSource:'Fonte original', boardTitle:'Leitura crítica',
+  infoTitle:'Como ler estes resultados', info1:'Cada ponto cita a linha de onde veio. Lê-o como pista, não como conclusão.', info2:'Nada aqui decide elegibilidade. A preparação conta o que marcaste.', info3:'“Não detetado” significa não encontrado no texto fornecido, nunca que não existe.', info4:'Os marcos são sugestões de planeamento, não datas da organização. Nenhuma data é inventada.',
+  evidenceTitle:'Excertos', evidenceHint:'Marca cada um como revisto', lensHint:'Texto completo, linha a linha', noEvidence:'Sem excertos correspondentes. Confirma a fonte manualmente; a ausência aqui não significa que o requisito não exista.',
+  planStep:'Plano', planInitial:'Revisão em curso', planSmall:'Nada é enviado. Os ficheiros são criados neste dispositivo.',
+  connectionLabel:'DUA Lab', connectionDescription:'Protótipo independente que explora um futuro complemento ao Radar Cultural da DUA. Sem ligação a contas ou dados DUA.', footerText:'Protótipo independente Kiroween', backToTop:'Voltar ao início',
+  statusReviewed:'Revisto', statusRead:'Lido do texto', statusMissing:'Por confirmar', daysAgo:'dias desde esta data', contactFound:'Encontrado',
+  hlAlerts:'Alertas', alertViewLabel:'Vista dos alertas', byType:'Por tipo', byPage:'Por página', byPosition:'Ao longo do texto', legendFindings:'Pontos', legendAlerts:'Alertas', tileSignals:'cláusulas a ler com atenção',
+  hlReady:'Preparação', notEligibility:'Só preparação. Não é decisão de elegibilidade.', tileReady:'pronto',
+  countdownTitle:'Plano até ao prazo', planLabel:'Plano de trabalho', planCompact:'2 semanas', planStandard:'3 semanas', planExtended:'6 semanas', suggestionsOnly:'Marcos sugeridos, não datas da organização.',
+  mapTitle:'Mapa do aviso', mapAll:'Todos os pontos', mapFilterLabel:'Mostrar no mapa', mapShown:'linhas em destaque', mapLines:'linhas',
+  signalsTitle:'Alertas para criativos', gapsTitle:'Perguntas para a organização', readyTitle:'Checklist de preparação'
 });
 
 const $ = (selector) => document.querySelector(selector);
@@ -143,6 +177,9 @@ let reviewed=new Set();
 let notes=new Map();
 let ready=new Set();
 let pdfInfo=null;
+let planKey='standard';
+let alertView='type';
+let mapFilter='all';
 
 function setLanguage(next) {
   language=next;
@@ -221,7 +258,7 @@ function formatDay(iso,options={day:'numeric',month:'short'}) {
 function countdownState() {
   const deadline=current.deadlines?.[0];
   if(!deadline) return null;
-  return {deadline,countdown:buildCountdown({iso:deadline.date.iso,today:localIsoDay()}),reviewed:reviewed.has(String(deadline.id))};
+  return {deadline,countdown:buildCountdown({iso:deadline.date.iso,today:localIsoDay(),plan:planKey}),reviewed:reviewed.has(String(deadline.id))};
 }
 
 // Clauses new in this version first, firm clauses next, "not specified" ones last.
@@ -378,188 +415,233 @@ function svg(tag,attrs={},children=[]) {
   for(const child of children) node.append(child);
   return node;
 }
-const ICONS={
-  compass:'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm3.6 6.4-2.1 5.1-5.1 2.1 2.1-5.1 5.1-2.1Z',
-  calendar:'M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm-2 7h14v10H5V9Z',
-  pin:'M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z',
-  alert:'M12 3 2 21h20L12 3Zm1 14h-2v2h2v-2Zm0-7h-2v5h2v-5Z',
-  doc:'M6 2h8l6 6v14H6V2Zm7 1.5V9h5.5L13 3.5ZM8 13h8v1.5H8V13Zm0 3.5h8V18H8v-1.5Z',
-  money:'M3 6h18v12H3V6Zm9 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM5 8v2a2 2 0 0 0 2-2H5Zm12 0a2 2 0 0 0 2 2V8h-2ZM5 14v2h2a2 2 0 0 0-2-2Zm14 0a2 2 0 0 0-2 2h2v-2Z',
-  question:'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 15h-2v-2h2v2Zm1.1-6.6-.9.9c-.7.7-1.2 1.3-1.2 2.7h-2v-.5c0-1.1.5-2.1 1.2-2.8l1.2-1.3c.4-.3.6-.8.6-1.4a2 2 0 0 0-4 0H7a4 4 0 0 1 8 0c0 .9-.4 1.7-.9 2.4Z',
-  mail:'M3 5h18v14H3V5Zm2 2v.5l7 4.5 7-4.5V7H5Zm14 2.8-7 4.5-7-4.5V17h14V9.8Z',
-  check:'M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z',
-  layers:'M12 2 1 8l11 6 11-6-11-6Zm-9 9.5L12 16l9-4.5 2 1.1-11 6-11-6 2-1.1Z',
-  lens:'M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z',
-  list:'M4 5h2v2H4V5Zm4 0h12v2H8V5Zm-4 6h2v2H4v-2Zm4 0h12v2H8v-2Zm-4 6h2v2H4v-2Zm4 0h12v2H8v-2Z',
-  plan:'M4 4h16v4H4V4Zm0 6h10v4H4v-4Zm0 6h16v4H4v-4Z'
-};
-function icon(name,className='icon') {
-  return svg('svg',{viewBox:'0 0 24 24',class:className,'aria-hidden':'true',focusable:'false'},[svg('path',{d:ICONS[name],fill:'currentColor'})]);
-}
-function arcPoint(fraction,cx=100,cy=100,r=80) {
-  const angle=Math.PI*(1-Math.min(1,Math.max(0,fraction)));
-  return [cx+r*Math.cos(angle),cy-r*Math.sin(angle)];
+function svgText(x,y,text,className,anchor='start') {
+  return svg('text',{x,y,class:className,'text-anchor':anchor},[document.createTextNode(text)]);
 }
 function dayDiff(a,b) {
   return Math.round((Date.parse(`${b}T00:00:00Z`)-Date.parse(`${a}T00:00:00Z`))/86400000);
 }
 
+// A native <select>, styled, so keyboard and screen readers work everywhere.
+function selectControl(id,label,options,value,onChange) {
+  const wrap=element('label','select');
+  wrap.append(element('span','sr-only',label));
+  const select=element('select'); select.id=id;
+  for(const [optionValue,text] of options){ const option=element('option','',text); option.value=optionValue; option.selected=optionValue===value; select.append(option); }
+  select.addEventListener('change',()=>{ onChange(select.value); document.getElementById(id)?.focus(); });
+  wrap.append(select);
+  return wrap;
+}
+
+// Cards are <article> (fixed) or <details> (foldable). Controls never sit inside <summary>.
+function cardHeader(card,id,title,meta='',control=null) {
+  if(card.tagName==='DETAILS'){
+    const summary=element('summary','fold-summary');
+    const heading=element('span','fold-title',title); heading.id=id;
+    summary.append(heading,element('span','fold-meta',meta));
+    card.replaceChildren(summary);
+    if(control){ const tools=element('div','card-tools'); tools.append(control); card.append(tools); }
+    return;
+  }
+  const head=element('div','card-head');
+  const heading=element('h4','',title); heading.id=id;
+  head.append(heading,control||element('span','card-meta',meta));
+  card.replaceChildren(head);
+}
+
 function renderDashboard({state,total,done,percent,signalCount}) {
   const t=copy[language];
-  const today=localIsoDay();
   const long={day:'numeric',month:'long',year:'numeric'};
 
-  // Hero: the deadline, like the main reading of the day
+  // Deadline hero
   const hero=$('#snapshot'); hero.replaceChildren();
-  const heroTop=element('div','hero-top');
-  heroTop.append(element('span','hero-badge',state?(state.reviewed?t.countdownStatusReviewed:t.countdownStatusText):t.heroNoDeadlineBadge));
-  heroTop.append(icon('compass','hero-icon'));
-  hero.append(heroTop);
+  const relative=current.gaps.includes('deadlineRelative');
+  hero.className=`dash-hero${!state?' is-empty':state.countdown.passed?' is-warning':''}`;
+  const top=element('div','hero-top');
+  top.append(element('span','hero-label',t.categories.deadline),element('span',`hero-status${state?.reviewed?' is-reviewed':''}`,state?(state.reviewed?t.statusReviewed:t.statusRead):t.statusMissing));
+  hero.append(top);
   const big=element('div','hero-big');
-  let variant='';
-  if(!state){
-    const relative=current.gaps.includes('deadlineRelative');
-    variant=' is-empty';
-    big.append(element('strong','hero-number','—'),element('span','hero-unit',relative?t.gapNames.deadlineRelative:t.tileNoDeadline));
-  } else if(state.countdown.passed){
-    variant=' is-warning';
-    big.append(element('strong','hero-number','!'),element('span','hero-unit',t.tilePassed));
-  } else {
-    big.append(element('strong','hero-number',String(state.countdown.daysLeft)),element('span','hero-unit',state.countdown.daysLeft===1?t.tileDaysOne:state.countdown.daysLeft===0?t.tileToday:t.tileDays));
-  }
-  hero.className=`dash-hero${variant}`;
+  if(!state) big.append(element('strong','hero-number','—'),element('span','hero-unit',relative?t.gapNames.deadlineRelative:t.tileNoDeadline));
+  else if(state.countdown.passed) big.append(element('strong','hero-number',String(Math.abs(state.countdown.daysLeft))),element('span','hero-unit',t.daysAgo));
+  else big.append(element('strong','hero-number',String(state.countdown.daysLeft)),element('span','hero-unit',state.countdown.daysLeft===1?t.tileDaysOne:state.countdown.daysLeft===0?t.tileToday:t.tileDays));
   hero.append(big);
-  const condition=element('p','hero-condition');
-  if(state){ condition.append(icon('calendar','icon-sm'),document.createTextNode(` ${t.heroCloses} ${formatDay(state.deadline.date.iso,long)}`)); }
-  else condition.append(document.createTextNode(current.gaps.includes('deadlineRelative')?t.gapQuestions.deadlineRelative:t.noCountdown));
-  hero.append(condition);
-  const foot=element('div','hero-foot');
-  const sourceName=pdfInfo?.name || (current.sourceUrl?new URL(current.sourceUrl).hostname:(current.example?t.heroExample:t.heroPasted));
-  const src=element('span','hero-meta'); src.append(icon('pin','icon-sm'),document.createTextNode(` ${sourceName}`));
-  const day=element('span','hero-meta'); day.append(icon('calendar','icon-sm'),document.createTextNode(` ${t.heroToday} · ${formatDay(today,long)}`));
-  foot.append(src,day);
-  hero.append(foot);
-
-  // Highlights
-  const box=$('#highlights'); box.replaceChildren();
-  const tile=(className,title,iconName)=>{const node=element('article',`hl ${className}`);const head=element('div','hl-head');head.append(element('span','hl-title',title),icon(iconName,'icon-sm'));node.append(head);box.append(node);return node;};
-
-  // 1. Alerts by type: bar chart
-  const alerts=tile('hl-alerts',t.hlAlerts,'alert');
-  const counts={}; for(const signal of current.signals) if(!signal.unspecified) counts[signal.kind]=(counts[signal.kind]||0)+1;
-  const max=Math.max(1,...Object.values(counts));
-  const chart=element('div','bars'); chart.setAttribute('role','img');
-  chart.setAttribute('aria-label',Object.keys(t.signalNames).map((kind)=>`${t.signalNames[kind]}: ${counts[kind]||0}`).join(', '));
-  for(const kind of Object.keys(t.signalNames)){
-    const col=element('div',`bar bar-${kind}${counts[kind]?'':' is-zero'}`);
-    const fill=element('span','bar-fill'); fill.style.height=`${counts[kind]?Math.max(12,counts[kind]/max*100):4}%`;
-    col.title=`${t.signalNames[kind]}: ${counts[kind]||0}`;
-    col.append(element('b','bar-count',counts[kind]?String(counts[kind]):''),fill,element('span','bar-label',t.shortSignals[kind]));
-    chart.append(col);
-  }
-  const alertFoot=element('div','hl-value'); alertFoot.append(element('strong','',String(signalCount)),element('span','',t.tileSignals));
-  alerts.append(chart,alertFoot);
-
-  // 2. Preparation gauge (semicircle)
-  const gauge=tile('hl-gauge',t.hlReady,'check');
-  const gaugeSvg=svg('svg',{viewBox:'0 0 200 112',class:'gauge','aria-hidden':'true'},[
-    svg('defs',{},[svg('linearGradient',{id:'gaugeGrad',x1:'0',x2:'1',y1:'0',y2:'0'},[svg('stop',{offset:'0','stop-color':'#3c40ff'}),svg('stop',{offset:'1','stop-color':'#c7fc73'})])]),
-    svg('path',{d:'M20 100 A80 80 0 0 1 180 100',class:'gauge-track',pathLength:'100'}),
-    svg('path',{d:'M20 100 A80 80 0 0 1 180 100',class:'gauge-fill',pathLength:'100','stroke-dasharray':`${percent} 100`})
-  ]);
-  for(let i=0;i<=10;i++){ const [x1,y1]=arcPoint(i/10,100,100,66); const [x2,y2]=arcPoint(i/10,100,100,60); gaugeSvg.append(svg('line',{x1,y1,x2,y2,class:'gauge-tick'})); }
-  const gaugeValue=element('div','gauge-value'); gaugeValue.append(element('strong','',`${percent}%`),element('span','',total?`${done}/${total} ${t.tileReady}`:t.noReadyShort));
-  const gaugeWrap=element('div','gauge-wrap'); gaugeWrap.append(gaugeSvg,gaugeValue);
-  gaugeWrap.setAttribute('role','img'); gaugeWrap.setAttribute('aria-label',`${t.hlReady}: ${percent}%`);
-  gauge.append(gaugeWrap,element('p','hl-note',t.tileReadyNote));
-
-  // 3. Work window arc: from D-21 to the deadline, with today on the arc
-  const win=tile('hl-window',t.hlWindow,'calendar');
-  if(!state || state.countdown.passed){
-    win.classList.add('is-empty');
-    win.append(element('p','hl-note',state?t.countdownPassed:t.noCountdown));
-  } else {
-    const first=state.countdown.milestones[0].iso;
-    const span=Math.max(1,dayDiff(first,state.deadline.date.iso));
-    const fraction=dayDiff(first,today)/span;
-    const arc=svg('svg',{viewBox:'0 0 200 112',class:'window-arc','aria-hidden':'true'},[
-      svg('path',{d:'M20 100 A80 80 0 0 1 180 100',class:'arc-track'}),
-      svg('path',{d:'M20 100 A80 80 0 0 1 180 100',class:'arc-done',pathLength:'100','stroke-dasharray':`${Math.max(0,Math.min(1,fraction))*100} 100`})
-    ]);
-    for(const milestone of state.countdown.milestones){ const [x,y]=arcPoint(dayDiff(first,milestone.iso)/span); arc.append(svg('circle',{cx:x,cy:y,r:3.2,class:`arc-mark${milestone.past?' is-past':''}`})); }
-    const [ex,ey]=arcPoint(1); arc.append(svg('circle',{cx:ex,cy:ey,r:5,class:'arc-end'}));
-    const [tx,ty]=arcPoint(fraction); arc.append(svg('circle',{cx:tx,cy:ty,r:7,class:'arc-today'}),svg('circle',{cx:tx,cy:ty,r:12,class:'arc-glow'}));
-    arc.append(svg('line',{x1:10,y1:100,x2:190,y2:100,class:'arc-horizon'}));
-    const labels=element('div','arc-labels');
-    const a=element('span','');a.append(element('b','',t.hlWindowStart),document.createTextNode(formatDay(first)));
-    const b=element('span','');b.append(element('b','',t.categories.deadline),document.createTextNode(formatDay(state.deadline.date.iso)));
-    labels.append(a,b);
-    const stateText=fraction<0?t.windowBefore.replace('{date}',formatDay(first)):t.windowInside.replace('{n}',String(dayDiff(first,today)+1)).replace('{total}',String(span+1));
-    const wrap=element('div','arc-wrap'); wrap.setAttribute('role','img'); wrap.setAttribute('aria-label',`${t.hlWindow}: ${stateText}`); wrap.append(arc);
-    win.append(wrap,labels,element('p','hl-note',stateText));
-  }
-
-  // 4–6. Small tiles
-  const small=(className,title,iconName,value,note)=>{const node=tile(`hl-small ${className}`,title,iconName);const v=element('div','hl-value');v.append(element('strong','',value));if(note) v.append(element('span','',note));node.append(v);return node;};
-  small('hl-amount',t.tileAmount,'money',current.amounts[0]?.raw||'—',current.amounts.length>1?t.moreAmounts.replace('{n}',String(current.amounts.length-1)):current.amounts.length?'':t.tileNoAmount);
-  small(`hl-gaps${current.gaps.length?' is-alert':''}`,t.hlGaps,'question',String(current.gaps.length),current.gaps.length?t.gapNames[current.gaps[0]]:t.hlNoGaps);
+  hero.append(element('p','hero-condition',state?`${t.heroCloses} ${formatDay(state.deadline.date.iso,long)}`:(relative?t.gapQuestions.deadlineRelative:t.noCountdown)));
+  const stats=element('dl','hero-stats');
+  const stat=(label,value,flag=false)=>{const row=element('div',`hero-stat${flag?' is-flag':''}`);row.append(element('dt','',label),element('dd','',value));stats.append(row);};
+  stat(t.tileAmount,current.amounts[0]?.raw||'—',!current.amounts.length);
+  stat(t.hlGaps,String(current.gaps.length),current.gaps.length>0);
   const email=findContactEmails(nodes.text.value)[0];
-  small('hl-contact',t.hlContact,'mail',email?email.split('@')[0]+'@…':'—',email||t.hlNoContact).classList.toggle('is-alert',!email);
+  stat(t.hlContact,email?t.contactFound:'—',!email);
+  hero.append(stats);
+  const sourceName=pdfInfo?.name || (current.sourceUrl?new URL(current.sourceUrl).hostname:(current.example?t.heroExample:t.heroPasted));
+  hero.append(element('p','hero-foot',`${sourceName} · ${t.heroToday} ${formatDay(localIsoDay(),long)}`));
 
+  const box=$('#highlights'); box.replaceChildren();
+  box.append(renderAlertChart(signalCount),renderReadinessRing({total,done,percent}));
+  renderCountdownCard(state);
   renderDocMap();
   renderSectionNav();
+}
+
+function textBins() {
+  const lineCount=nodes.text.value.split('\n').length;
+  const pages=current.pages||[];
+  if(pages.length>1) return pages.map((start,index)=>({label:`${copy[language].pageShort} ${index+1}`,from:start,to:(pages[index+1]||lineCount+1)-1}));
+  const size=Math.max(1,Math.ceil(lineCount/10));
+  const bins=[];
+  for(let from=1;from<=lineCount;from+=size) bins.push({label:`${Math.round((from-1)/lineCount*100)}%`,from,to:Math.min(lineCount,from+size-1)});
+  return bins;
+}
+
+function renderAlertChart(signalCount) {
+  const t=copy[language];
+  const card=element('article','card hl-alerts');
+  const control=selectControl('alertView',t.alertViewLabel,[['type',t.byType],['position',current.pages?.length>1?t.byPage:t.byPosition]],alertView,(value)=>{alertView=value;renderBoard();});
+  const head=element('div','card-head'); const h=element('h4','',t.hlAlerts); h.id='alerts-title'; head.append(h,control);
+  card.append(head);
+  const total=element('div','metric'); total.append(element('strong','',String(signalCount)),element('span','',t.tileSignals));
+  card.append(total);
+  const firm=(current.signals||[]).filter((signal)=>!signal.unspecified);
+  if(alertView==='type'){
+    const counts={}; for(const signal of firm) counts[signal.kind]=(counts[signal.kind]||0)+1;
+    const kinds=Object.keys(t.signalNames).sort((a,b)=>(counts[b]||0)-(counts[a]||0));
+    const max=Math.max(1,...Object.values(counts));
+    const list=element('ul','hbars'); list.setAttribute('aria-label',t.hlAlerts);
+    kinds.forEach((kind,index)=>{
+      const n=counts[kind]||0;
+      const row=element('li',`hbar${n?'':' is-zero'}${index===0&&n?' is-top':''}`);
+      const track=element('span','hbar-track'); const fill=element('span','hbar-fill'); fill.style.width=`${n/max*100}%`; track.append(fill);
+      const label=element('span','hbar-label'); label.title=t.signalNames[kind];
+      label.append(element('span','label-full',t.signalNames[kind]),element('span','label-short',t.shortSignals[kind]));
+      row.append(label,track,element('span','hbar-value',String(n)));
+      list.append(row);
+    });
+    card.append(list);
+  } else {
+    const bins=textBins();
+    const findings=bins.map((bin)=>new Set((current.items||[]).filter((item)=>item.line>=bin.from&&item.line<=bin.to).map((item)=>item.line)).size);
+    const alerts=bins.map((bin)=>firm.filter((signal)=>signal.line>=bin.from&&signal.line<=bin.to).length);
+    const max=Math.max(1,...findings.map((n,i)=>Math.max(n,alerts[i])));
+    const W=300,H=130,base=108,step=W/bins.length,bw=Math.min(22,step*0.5);
+    const chart=svg('svg',{viewBox:`0 0 ${W} ${H}`,class:'colchart',role:'img','aria-label':bins.map((bin,i)=>`${bin.label}: ${findings[i]} / ${alerts[i]}`).join(', ')});
+    for(let g=0;g<=2;g++){ const y=base-(base-14)*g/2; chart.append(svg('line',{x1:0,x2:W,y1:y,y2:y,class:'grid'})); }
+    bins.forEach((bin,i)=>{
+      const x=i*step+(step-bw)/2;
+      const hf=(base-14)*findings[i]/max, ha=(base-14)*alerts[i]/max;
+      chart.append(svg('rect',{x,y:base-hf,width:bw,height:Math.max(hf,1),rx:2,class:'col-findings'}));
+      if(alerts[i]) chart.append(svg('rect',{x:x+bw*0.25,y:base-ha,width:bw*0.5,height:ha,rx:1.5,class:'col-alerts'}));
+      if(bins.length<=12 || i%Math.ceil(bins.length/12)===0) chart.append(svgText(x+bw/2,H-6,bin.label,'axis','middle'));
+    });
+    const legend=element('div','legend'); legend.append(element('span','key key-muted',t.legendFindings),element('span','key key-accent',t.legendAlerts));
+    card.append(chart,legend);
+  }
+  return card;
+}
+
+function renderReadinessRing({total,done,percent}) {
+  const t=copy[language];
+  const card=element('article','card hl-ready');
+  const head=element('div','card-head'); head.append(element('h4','',t.hlReady),element('span','card-meta',total?`${done}/${total}`:''));
+  card.append(head);
+  const r=46, c=2*Math.PI*r;
+  const ring=svg('svg',{viewBox:'0 0 120 120',class:'ring','aria-hidden':'true'},[
+    svg('circle',{cx:60,cy:60,r,class:'ring-track'}),
+    svg('circle',{cx:60,cy:60,r,class:'ring-fill','stroke-dasharray':`${c*percent/100} ${c}`,transform:'rotate(-90 60 60)'})
+  ]);
+  for(let i=0;i<total&&total<=40;i++){ const a=(i/total)*2*Math.PI-Math.PI/2; ring.append(svg('circle',{cx:60+57*Math.cos(a),cy:60+57*Math.sin(a),r:1.6,class:`ring-dot${i<done?' is-on':''}`})); }
+  const wrap=element('div','ring-wrap'); wrap.setAttribute('role','img'); wrap.setAttribute('aria-label',`${t.hlReady}: ${percent}%`);
+  const value=element('div','ring-value'); value.append(element('strong','',total?`${percent}%`:'—'),element('span','',total?t.tileReady:t.noReadyShort));
+  wrap.append(ring,value);
+  card.append(wrap,element('p','card-foot',t.notEligibility));
+  return card;
+}
+
+function renderCountdownCard(state) {
+  const t=copy[language];
+  const card=$('#countdownCard');
+  const control=state&&!state.countdown.passed?selectControl('planSelect',t.planLabel,[['compact',t.planCompact],['standard',t.planStandard],['extended',t.planExtended]],planKey,(value)=>{planKey=value;renderBoard();renderKit();}):null;
+  cardHeader(card,'countdown-title',t.countdownTitle,state?formatDay(state.deadline.date.iso,{day:'numeric',month:'long',year:'numeric'}):'',control);
+  if(!state){ card.append(element('p','card-empty',t.noCountdown)); return; }
+  if(current.deadlines.length>1) card.append(element('p','card-note',t.countdownMultiple));
+  if(state.countdown.passed){ card.append(element('p','card-empty',t.countdownPassed)); return; }
+  const today=localIsoDay();
+  const first=state.countdown.milestones[0].iso;
+  const start=dayDiff(first,today)<0?first:today;
+  const span=Math.max(1,dayDiff(first,state.deadline.date.iso));
+  const W=320,H=64,pad=10,y=30;
+  const x=(iso)=>pad+(W-2*pad)*Math.min(1,Math.max(0,dayDiff(first,iso)/span));
+  const line=svg('svg',{viewBox:`0 0 ${W} ${H}`,class:'timeline',role:'img','aria-label':`${t.countdownTitle}: ${state.countdown.daysLeft} ${t.tileDays}`});
+  line.append(svg('line',{x1:pad,x2:W-pad,y1:y,y2:y,class:'tl-track'}));
+  line.append(svg('line',{x1:pad,x2:x(today),y1:y,y2:y,class:'tl-done'}));
+  state.countdown.milestones.forEach((m,i)=>{ line.append(svg('circle',{cx:x(m.iso),cy:y,r:4,class:`tl-mark${m.past?' is-past':''}`})); line.append(svgText(x(m.iso),y-12,`D−${m.offset}`,'tl-label','middle')); if(i===0) line.append(svgText(x(m.iso),y+24,formatDay(m.iso),'tl-date','start')); });
+  line.append(svg('circle',{cx:x(state.deadline.date.iso),cy:y,r:6,class:'tl-end'}));
+  line.append(svgText(x(state.deadline.date.iso),y+24,formatDay(state.deadline.date.iso),'tl-date','end'));
+  if(dayDiff(first,today)>=0) line.append(svg('line',{x1:x(today),x2:x(today),y1:y-9,y2:y+9,class:'tl-today'}));
+  card.append(line);
+  const list=element('ol','milestones');
+  for(const m of state.countdown.milestones){
+    const row=element('li',`milestone${m.past?' is-past':''}`);
+    row.append(element('span','milestone-date',formatDay(m.iso)),element('span','milestone-label',t.milestones[m.key]),element('span','milestone-offset',m.past?t.milestonePast:`D−${m.offset}`));
+    list.append(row);
+  }
+  const end=element('li','milestone is-deadline');
+  end.append(element('span','milestone-date',formatDay(state.deadline.date.iso)),element('span','milestone-label',t.categories.deadline),element('span','milestone-offset','D'));
+  list.append(end);
+  card.append(list,element('p','card-foot',dayDiff(start,today)<0?t.windowBefore.replace('{date}',formatDay(first)):t.suggestionsOnly));
 }
 
 function renderDocMap() {
   const t=copy[language];
   const card=$('#docMap');
-  cardHeader(card,'map-title',t.mapTitle,t.mapHint);
+  const filters=[['all',t.mapAll],['alert',t.lensAlert],['deadline',t.categories.deadline],['eligibility',t.categories.eligibility],['documents',t.categories.documents],['costs',t.categories.costs],['funding',t.categories.funding]];
+  cardHeader(card,'map-title',t.mapTitle,'',selectControl('mapFilter',t.mapFilterLabel,filters,mapFilter,(value)=>{mapFilter=value;renderDocMap();}));
   const lines=nodes.text.value.split('\n');
   const n=lines.length;
-  const lead=new Map();
-  for(const item of current.items||[]) if(!lead.has(item.line)) lead.set(item.line,`cat-${item.category}`);
+  const byLine=new Map();
+  for(const item of current.items||[]){ if(!byLine.has(item.line)) byLine.set(item.line,new Set()); byLine.get(item.line).add(item.category); }
   const alertLines=new Set((current.signals||[]).filter((signal)=>!signal.unspecified).map((signal)=>signal.line));
-  const W=1000, H=110, base=88;
+  const matches=(line)=>mapFilter==='all'?(byLine.has(line)||alertLines.has(line)):mapFilter==='alert'?alertLines.has(line):byLine.get(line)?.has(mapFilter);
+  const W=1000,H=112,base=90;
   const step=W/Math.max(n,1);
+  let shown=0;
   const map=svg('svg',{viewBox:`0 0 ${W} ${H}`,preserveAspectRatio:'none',class:'map-svg',role:'img','aria-label':t.mapAria.replace('{lines}',String(n)).replace('{alerts}',String(alertLines.size))});
+  for(let g=1;g<=3;g++) map.append(svg('line',{x1:0,x2:W,y1:base-g*22,y2:base-g*22,class:'grid'}));
   lines.forEach((raw,index)=>{
-    const lineNo=index+1;
-    const len=raw.trim().length;
+    const lineNo=index+1, len=raw.trim().length;
     if(!len) return;
-    const alert=alertLines.has(lineNo);
-    const kind=alert?'cat-alert':(lead.get(lineNo)||'');
-    const h=alert?base-8:Math.max(6,Math.min(1,len/120)*(kind?62:38));
-    const width=Math.min(Math.max(step*0.72,1.2),14);
-    map.append(svg('rect',{x:(index*step+(step-width)/2).toFixed(2),y:(base-h).toFixed(2),width:width.toFixed(2),height:h.toFixed(2),rx:Math.min(3,width/3).toFixed(2),class:`map-bar ${kind}`}));
+    const hit=matches(lineNo); if(hit) shown+=1;
+    const found=byLine.has(lineNo)||alertLines.has(lineNo);
+    const h=alertLines.has(lineNo)?base-10:Math.max(5,Math.min(1,len/120)*(found?60:34));
+    const width=Math.min(Math.max(step*0.7,1.2),12);
+    map.append(svg('rect',{x:(index*step+(step-width)/2).toFixed(2),y:(base-h).toFixed(2),width:width.toFixed(2),height:h.toFixed(2),rx:Math.min(2,width/3).toFixed(2),class:`map-bar${hit?' is-hit':''}${alertLines.has(lineNo)?' is-alert':''}`}));
   });
-  for(const line of alertLines){ const x=(line-0.5)*step; map.append(svg('circle',{cx:x.toFixed(2),cy:6,r:5,class:'map-pin'})); }
   map.append(svg('line',{x1:0,y1:base+1,x2:W,y2:base+1,class:'map-base'}));
   const pages=current.pages||[];
-  if(pages.length>1) pages.forEach((start,index)=>{ const x=(start-1)*step; map.append(svg('line',{x1:x,y1:base+1,x2:x,y2:H,class:'map-page'})); map.append(svg('text',{x:x+4,y:H-4,class:'map-page-label'},[document.createTextNode(`${t.pageShort} ${index+1}`)])); });
+  if(pages.length>1) pages.forEach((start,index)=>{ const px=(start-1)*step; map.append(svg('line',{x1:px,y1:base+1,x2:px,y2:H,class:'map-page'})); map.append(svgText(px+5,H-5,`${t.pageShort} ${index+1}`,'map-page-label')); });
   map.addEventListener('click',(event)=>{
     const rect=map.getBoundingClientRect();
     const line=Math.min(n,Math.max(1,Math.floor((event.clientX-rect.left)/rect.width*n)+1));
     let target=line;
-    for(let d=0;d<6;d++){ if(lead.has(line+d)||alertLines.has(line+d)){target=line+d;break;} if(lead.has(line-d)||alertLines.has(line-d)){target=line-d;break;} }
+    for(let d=0;d<8;d++){ if(matches(line+d)){target=line+d;break;} if(matches(line-d)){target=line-d;break;} }
+    const lens=$('#lens'); if(lens && !lens.open) lens.open=true;
     focusLens(target);
   });
-  const legend=element('div','map-legend');
-  legend.append(element('span','map-stat',t.mapStats.replace('{lines}',String(n)).replace('{found}',String(new Set([...lead.keys()]).size)).replace('{alerts}',String(alertLines.size))));
+  const legend=element('div','legend');
+  legend.append(element('span','key key-accent',`${shown} ${t.mapShown}`),element('span','key key-muted',`${n} ${t.mapLines}`));
   card.append(map,legend);
 }
 
-const NAV_SECTIONS=[['insightBoard','navSummary','compass'],['signalsCard','navAlerts','alert'],['gapsCard','navGaps','question'],['readinessCard','navReady','check'],['lens','navLens','lens'],['evidenceList','navPoints','list'],['planPanel','navPlan','plan']];
+const NAV_SECTIONS=[['insightBoard','navSummary'],['signalsCard','navAlerts'],['gapsCard','navGaps'],['readinessCard','navReady'],['lens','navLens'],['evidenceList','navPoints'],['planPanel','navPlan']];
 let navObserver=null;
 function renderSectionNav() {
   const t=copy[language];
   const nav=$('#sectionNav'); nav.replaceChildren();
   nav.setAttribute('aria-label',t.navLabel);
-  for(const [id,key,iconName] of NAV_SECTIONS){
+  for(const [id,key] of NAV_SECTIONS){
     const target=document.getElementById(id);
     if(!target) continue;
-    const link=element('a','nav-link'); link.href=`#${id}`; link.dataset.target=id;
-    link.append(icon(iconName,'icon-sm'),element('span','',t[key]));
-    link.addEventListener('click',(event)=>{ event.preventDefault(); target.scrollIntoView({behavior:motion(),block:'start'}); });
+    const link=element('a','nav-link',t[key]); link.href=`#${id}`; link.dataset.target=id;
+    link.addEventListener('click',(event)=>{ event.preventDefault(); if(target.tagName==='DETAILS') target.open=true; target.scrollIntoView({behavior:motion(),block:'start'}); });
     nav.append(link);
   }
   navObserver?.disconnect();
@@ -567,11 +649,10 @@ function renderSectionNav() {
   const update=()=>{
     const line=innerHeight*0.4;
     let active=NAV_SECTIONS[0][0];
-    // The plan panel is sticky, so its position does not say where the reader is; it is never "passed".
-    // Cards side by side start at the same height; the first of them stays active.
+    nav.classList.toggle('is-off',nodes.results.getBoundingClientRect().top>innerHeight*0.6);
+    // Cards side by side start at the same height; the first stays active. The sticky plan panel is never "passed".
     let lastTop=-Infinity;
     for(const [id] of NAV_SECTIONS){ if(id==='planPanel') continue; const target=document.getElementById(id); if(!target) continue; const top=target.getBoundingClientRect().top; if(top<=line && top>lastTop+2){ active=id; lastTop=top; } }
-    nav.classList.toggle('is-off',nodes.results.getBoundingClientRect().top>innerHeight*0.6);
     nav.querySelectorAll('.nav-link').forEach((link)=>{ const on=link.dataset.target===active; link.classList.toggle('is-active',on); if(on) link.setAttribute('aria-current','true'); else link.removeAttribute('aria-current'); });
   };
   let timer=0;
@@ -579,13 +660,6 @@ function renderSectionNav() {
   addEventListener('scroll',onScroll,{passive:true});
   navObserver={disconnect:()=>removeEventListener('scroll',onScroll)};
   update();
-}
-
-function cardHeader(card,id,title,hint) {
-  const head=element('div','card-head');
-  const h=element('h4','',title); h.id=id;
-  head.append(h,element('span','',hint));
-  card.replaceChildren(head);
 }
 
 function renderBoard() {
@@ -601,7 +675,7 @@ function renderBoard() {
 
   // Alerts
   const signals=$('#signalsCard');
-  cardHeader(signals,'signals-title',t.signalsTitle,t.signalsHint);
+  cardHeader(signals,'signals-title',t.signalsTitle,String(current.signals.length));
   if(!current.signals.length) signals.append(element('p','card-empty',t.noSignals));
   const list=element('ul','signal-list');
   for(const signal of orderedSignals()){
@@ -619,7 +693,7 @@ function renderBoard() {
 
   // Gaps
   const gaps=$('#gapsCard');
-  cardHeader(gaps,'gaps-title',t.gapsTitle,t.gapsHint);
+  cardHeader(gaps,'gaps-title',t.gapsTitle,String(current.gaps.length));
   if(!current.gaps.length) gaps.append(element('p','card-empty',t.noGaps));
   else {
     const gapList=element('ul','gap-list');
@@ -632,32 +706,9 @@ function renderBoard() {
     gaps.append(gapList,copyButton);
   }
 
-  // Countdown
-  const countdown=$('#countdownCard');
-  cardHeader(countdown,'countdown-title',t.countdownTitle,state?formatDay(state.deadline.date.iso,{day:'numeric',month:'long',year:'numeric'}):'');
-  if(!state) countdown.append(element('p','card-empty',t.noCountdown));
-  else {
-    const status=element('p',`countdown-status${state.reviewed?' is-reviewed':''}`,state.reviewed?t.countdownStatusReviewed:t.countdownStatusText);
-    countdown.append(status);
-    if(current.deadlines.length>1) countdown.append(element('p','card-empty',t.countdownMultiple));
-    if(state.countdown.passed) countdown.append(element('p','card-empty',t.countdownPassed));
-    else {
-      const track=element('ol','milestones');
-      for(const milestone of state.countdown.milestones){
-        const row=element('li',`milestone${milestone.past?' is-past':''}`);
-        row.append(element('span','milestone-date',formatDay(milestone.iso)),element('span','milestone-label',t.milestones[milestone.key]),element('span','milestone-offset',milestone.past?t.milestonePast:`D−${milestone.offset}`));
-        track.append(row);
-      }
-      const end=element('li','milestone is-deadline');
-      end.append(element('span','milestone-date',formatDay(state.deadline.date.iso)),element('span','milestone-label',t.categories.deadline),element('span','milestone-offset','D'));
-      track.append(end);
-      countdown.append(track,element('p','card-note',t.countdownNote));
-    }
-  }
-
   // Readiness
   const readiness=$('#readinessCard');
-  cardHeader(readiness,'ready-title',t.readyTitle,total?`${done}/${total} ${t.readyLabel}`:t.readyHint);
+  cardHeader(readiness,'ready-title',t.readyTitle,total?`${done}/${total}`:'');
   if(!total) readiness.append(element('p','card-empty',t.noReady));
   else {
     const meter=element('div','ready-meter'); meter.setAttribute('role','progressbar'); meter.setAttribute('aria-valuemin','0'); meter.setAttribute('aria-valuemax','100'); meter.setAttribute('aria-valuenow',String(percent)); meter.setAttribute('aria-label',t.readyTitle);
@@ -677,7 +728,7 @@ function renderBoard() {
       }
       readiness.append(group);
     }
-    readiness.append(element('p','card-note',t.readyNote));
+    readiness.append(element('p','card-foot',t.notEligibility));
   }
 }
 

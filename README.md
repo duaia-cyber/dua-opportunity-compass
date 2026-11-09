@@ -9,13 +9,13 @@ It is an independent prototype by [2 LADOS / DUA](https://dua.2lados.pt). It run
 ## What it does
 
 1. **Import the notice.** Paste the text or drop the PDF. The text layer is read locally with pdf.js; two-column layouts and wrapped sentences are rebuilt, and each finding keeps its PDF page.
-2. **Critical reading dashboard.**
-   - *Deadline hero and forecast*: days to the deadline, the closing date, and the suggested milestones like a seven-day forecast.
-   - *Highlights*: alerts by type (bar chart), preparation gauge, a work-window arc from D−21 to the deadline with today on it, the amount quoted, open questions and the contact found.
-   - *Notice map*: every line of the notice as one bar, coloured by what was found, with alert pins and page marks; click to read that line.
-   - *Section navigation*: a sticky bar on phones, a side rail on wide screens.
-   - *Alerts for creative work*: rights and licences, exclusivity, entry fees, unpaid work, payment timing, grounds for exclusion, co-financing. Clauses that appeared since the earlier version are tagged **New in this version**.
-   - *What the text does not say*: missing deadline, amount, contact, criteria, rights or payment timing, and deadlines counted from another date, each with a question for the organiser.
+2. **Critical reading dashboard** (monochrome, one accent colour).
+   - *Deadline*: days left, closing date, and the amount, open questions and contact found.
+   - *Alerts*: clauses about rights, exclusivity, fees, unpaid work, payment timing, exclusion and co-financing. A dropdown switches between **by type** and **by page / across the text**. Clauses that appeared since the earlier version are tagged **New in this version**.
+   - *Readiness*: a ring that fills as you tick the checklist. It never claims eligibility.
+   - *Plan to the deadline*: a timeline with a **2 / 3 / 6-week** dropdown. The choice changes the milestones, the calendar file and the brief.
+   - *Notice map*: every line as one bar, with a dropdown filter (all, alerts, deadline, eligibility, documents, costs, funding) and page marks. Click to read that line.
+   - *Questions for the organiser* and the *readiness checklist* sit in foldable panels. A "How to read these results" panel holds the caveats.
 3. **Evidence lens.** The whole notice, line by line and page by page, coloured by what was found. Click a line to jump to its finding, or a finding to jump back to the text.
 4. **Plan and kit.**
    - A countdown with suggested working milestones (D−21 to D−1).
@@ -39,7 +39,8 @@ Open `http://127.0.0.1:3000/` and click **Try the example**. The fictional examp
 
 ## Evidence that it works
 
-- **Unit tests**: run `node --test tests/*.test.mjs` with Node 20+. They cover dates, periods, deadline ranking, alerts, gaps, checklist, countdown, calendar files, PDF line rebuilding (using items captured from pdf.js), working copies, and a privacy check that fails if application code gains a network call or a remote script.
+- **Interface check**: serve the folder and open `/tests/ui.html`. It loads the app and operates every control: language, validation, the example, the three dropdowns, the map, the lens, review, notes, both calendars, the checklist, copying questions, the e-mail draft, the brief, print, saving and reopening a working copy, version comparison, section navigation, PDF import and the layout. Downloads, clipboard and print are intercepted. Last run: 24 of 24 passed.
+- **Unit tests**: run `node --test tests/*.test.mjs` with Node 20+ (50 tests). They cover dates, periods, deadline ranking, alerts, gaps, checklist, countdown, calendar files, PDF line rebuilding (using items captured from pdf.js), working copies, and a privacy check that fails if application code gains a network call or a remote script.
 - **Real notices**: [docs/EVALUATION.md](docs/EVALUATION.md) records a run over 10 public calls from Portugal, Brazil, Cabo Verde, Moçambique and the CPLP (117 pages).
   - The first run found the right deadline in 1 of 10 notices. After the fixes it documents, all 10 are handled correctly: 7 dates, 2 relative deadlines named as such, and 1 incomplete date that is refused.
   - Of 25 alerts, 22 point to a clause worth reading, 2 are weaker than labelled and 1 is a false positive. Recall was not measured.

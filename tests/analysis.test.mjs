@@ -126,3 +126,10 @@ test('does not read clause numbers as dates', () => {
   assert.deepEqual([item.date.iso, item.date.status], ['2026-10-01', 'explicit']);
   assert.equal(deadline('2.4 Prazo de inscrição: ver anexo').date, null);
 });
+
+test('reads "grant" as funding only when it is a noun', () => {
+  const categories = (text) => run(text).items.map((item) => item.category);
+  assert.ok(!categories('Selected works grant the organiser a perpetual licence.').includes('funding'));
+  assert.ok(categories('A grant of up to €5,000 is available.').includes('funding'));
+  assert.ok(categories('Grants cover travel only.').includes('funding'));
+});

@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interface check · Opportunity Compass</title>
+  <style>
+    :root{color-scheme:dark}
+    body{margin:0;background:#0b0b0d;color:#f2f2ef;font:14px/1.5 Inter,ui-sans-serif,system-ui,sans-serif}
+    main{max-width:960px;margin:0 auto;padding:32px 20px}
+    h1{font-size:22px;font-weight:560;letter-spacing:-.02em;margin:0 0 6px}
+    p{color:#a3a3a8;margin:0 0 20px}
+    #summary{font-size:15px;margin:0 0 16px}
+    table{width:100%;border-collapse:collapse}
+    td{padding:8px 10px;border-top:1px solid rgba(255,255,255,.08);vertical-align:top}
+    td:first-child{width:56px;font-weight:650}
+    .pass td:first-child{color:#c7fc73}
+    .fail td:first-child{color:#ff8a8a}
+    .detail{color:#6e6e74;font-size:12px}
+    iframe{width:1280px;height:900px;border:1px solid rgba(255,255,255,.1);margin-top:24px;transform-origin:0 0}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Interface check</h1>
+  <p>Loads the app below and operates every control. Downloads, clipboard and print are intercepted, so nothing leaves this page.</p>
+  <div id="summary">Running…</div>
+  <table id="report"></table>
+  <iframe id="app" src="../index.html" title="Opportunity Compass under test"></iframe>
+</main>
+<script type="module">
+const report = document.getElementById('report');
+const summary = document.getElementById('summary');
+const frame = document.getElementById('app');
+const results = [];
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function record(ok, name, detail = '') {
+  results.push(ok);
+  const row = document.createElement('tr');
+  row.className = ok ? 'pass' : 'fail';
+  const status = document.createElement('td'); status.textContent = ok ? 'PASS' : 'FAIL';
+  const label = document.createElement('td'); label.textContent = name;
+  if (detail) { const small = document.createElement('div'); small.className = 'detail'; small.textContent = detail; label.append(small); }
+  row.append(status, label);
+  report.append(row);
+}
+
+async function check(name, fn) {
+  try {
+    const detail = await fn();
+    record(true, name, typeof detail === 'string' ? detail : '');
+  } catch (error) {
+    record(false, name, error?.message || String(error));
+  }
+}
+
+function assert(condition, message) { if (!condition) throw new Error(message); }
+
+async function until(fn, message, timeout = 6000) {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    const value = fn();
+    if (value) return value;
+    await sleep(60);
+  }
+  throw new Error(`Timed out: ${message}`);
+}
+
+await new Promise((resolve) => frame.addEventListener('load', resolve, { once: true }));
+const win = frame.contentWindow;
+const doc = frame.contentDocument;
+const $ = (selector) => doc.querySelector(selector);
+const $$ = (selector) => [...doc.querySelectorAll(selector)];
+await until(() => $('#sectionNav') && win.document.readyState === 'complete', 'app ready');
+await sleep(300);
+
+// Intercept downloads, clipboard and print inside the app.
+const downloads = [];
+const createURL = win.URL.createObjectURL.bind(win.URL);
+win.URL.createObjectURL = (blob) => { const url = createURL(blob); blob.text().then((text) => downloads.push({ type: blob.type, text })); return url; };
+win.HTMLAnchorElement.prototype.click = function () { downloads.push({ name: this.download }); };
+let clipboardText = null;
+Object.defineProperty(win.navigator, 'clipboard', { configurable: true, value: { writeText: async (text) => { clipboardText = text; } } });
+let printed = 0;
+win.print = () => { printed += 1; };
+const lastDownload = async (prefix) => { await sleep(150); const found = [...downloads].reverse().find((d) => d.text && d.text.startsWith(prefix)); assert(found, `no download starting with ${prefix}`); return found.text; };
+const setSelect = (id, value) => { const select = $(`#${id}`); assert(select, `missing select #${id}`); select.value = value; select.dispatchEvent(new win.Event('change', { bubbles: true })); };
+const daysTo = (iso) => { const d = new Date(); const today = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); return Math.round((Date.parse(`${iso}T00:00:00Z`) - today) / 86400000); };
+
+await check('Language switch changes the interface and back', async () => {
+  $('[data-lang=pt]').click();
+  assert(doc.documentElement.lang === 'pt', 'lang not pt');
+  assert($('#workspace-title').textContent.includes('fonte'), 'title not translated');
+  $('[data-lang=en]').click();
+  assert(doc.documentElement.lang === 'en', 'lang not en');
+});
+
+await check('Empty submission shows an error', async () => {
+  $('#sourceForm button[type=submit]').click();
+  assert($('#formError').textContent.trim().length > 0, 'no error');
+});
+
+await check('Invalid source link is refused', async () => {
+  $('#sourceText').value = 'Deadline: 4 December 2026.';
+  $('#sourceUrl').value = 'javascript:alert(1)';
+  $('#sourceForm button[type=submit]').click();
+  assert($('#formError').textContent.includes('http'), 'no URL error');
+  $('#sourceUrl').value = '';
+});
+
+await check('Example loads, analyses and shows six excerpts', async () => {
+  $('#demoButton').click();
+  await until(() => !$('#results').hidden, 'results visible');
+  assert($('#evidenceCount').textContent === '6', `count ${$('#evidenceCount').textContent}`);
+  return `${$('#evidenceCount').textContent} excerpts`;
+});
+
+await check('Deadline hero counts days to 4 December 2026', async () => {
+  const expected = daysTo('2026-12-04');
+  const shown = Number($('.hero-number').textContent);
+  assert(shown === Math.abs(expected), `shown ${shown}, expected ${Math.abs(expected)}`);
+  return `${shown} days`;
+});
+
+await check('New licence clause is tagged “new in this version”', async () => {
+  const tag = $('.signal-new');
+  assert(tag && tag.closest('.signal').textContent.includes('perpetual'), 'tag missing on licence clause');
+});
+
+await check('Alerts dropdown switches between type and position views', async () => {
+  assert($$('.hbar').length === 7, 'type view missing');
+  setSelect('alertView', 'position');
+  assert($('.colchart'), 'position chart missing');
+  setSelect('alertView', 'type');
+  assert($('.hbars'), 'type chart missing after switch');
+});
+
+await check('Plan dropdown changes milestones (2, 3 and 6 weeks)', async () => {
+  setSelect('planSelect', 'compact');
+  assert($$('.milestone-offset')[0].textContent.includes('10') || $$('.milestone')[0].classList.contains('is-past'), 'compact plan not applied');
+  setSelect('planSelect', 'extended');
+  assert($('.tl-label').textContent.includes('42'), 'extended plan not applied');
+  setSelect('planSelect', 'standard');
+  assert($('.tl-label').textContent.includes('21'), 'standard plan not restored');
+});
+
+await check('Map filter highlights only matching lines', async () => {
+  setSelect('mapFilter', 'alert');
+  const alerts = $$('.map-bar.is-hit').length;
+  assert(alerts === 3, `alert filter shows ${alerts}`);
+  setSelect('mapFilter', 'deadline');
+  const deadlines = $$('.map-bar.is-hit').length;
+  assert(deadlines === 1, `deadline filter shows ${deadlines}`);
+  setSelect('mapFilter', 'all');
+  return `alerts ${alerts}, deadline ${deadlines}`;
+});
+
+await check('Clicking the map opens the lens on a line', async () => {
+  const map = $('.map-svg');
+  const box = map.getBoundingClientRect();
+  map.dispatchEvent(new win.MouseEvent('click', { bubbles: true, clientX: box.left + box.width * 0.8, clientY: box.top + box.height / 2 }));
+  await sleep(200);
+  assert($('#lens').open, 'lens did not open');
+  assert(doc.activeElement?.classList.contains('lens-line'), 'no lens line focused');
+});
+
+await check('Lens line jumps to its finding', async () => {
+  $('#lens-7').click();
+  await sleep(200);
+  assert($('.is-flash'), 'nothing highlighted');
+});
+
+await check('“Show in text” focuses the lens line', async () => {
+  $('.signal .line-link').click();
+  await sleep(200);
+  assert(doc.activeElement?.id?.startsWith('lens-'), 'lens line not focused');
+});
+
+await check('Reviewing the deadline unlocks note and calendars', async () => {
+  const item = $$('.evidence-item').find((row) => row.querySelector('.evidence-meta'));
+  item.querySelector('.review-button').click();
+  assert($('#reviewedCount').textContent === '1', 'reviewed count');
+  assert(!$('#planCalendarButton').disabled, 'plan calendar still locked');
+  const note = $('.note-input'); note.value = 'Ask if PDF portfolios are accepted'; note.dispatchEvent(new win.Event('input', { bubbles: true }));
+  $('.calendar-button').click();
+  const single = await lastDownload('BEGIN:VCALENDAR');
+  assert(single.includes('DTSTART;VALUE=DATE:20261204'), 'single calendar date');
+  $('#planCalendarButton').click();
+  await sleep(150);
+  const plan = [...downloads].reverse().find((d) => d.text?.startsWith('BEGIN:VCALENDAR'));
+  const events = (plan.text.match(/BEGIN:VEVENT/g) || []).length;
+  assert(events >= 2 && events <= 6, `plan calendar has ${events} events`);
+  return `plan calendar: ${events} events`;
+});
+
+await check('Checklist ticks move the readiness ring', async () => {
+  const boxes = $$('.ready-item input');
+  boxes[0].click();
+  await sleep(50);
+  const value = $('.ring-value strong').textContent;
+  assert(value !== '0%' && value !== '—', `ring shows ${value}`);
+  return `${boxes.length} entries, ring ${value}`;
+});
+
+await check('Copy questions writes them to the clipboard', async () => {
+  $('.copy-questions').click();
+  await sleep(100);
+  assert(clipboardText && clipboardText.includes('?'), 'clipboard empty');
+});
+
+await check('E-mail draft is a mailto link with the questions', async () => {
+  const link = $('#emailDraft');
+  assert(!link.hidden && link.href.startsWith('mailto:'), 'no mailto');
+  assert(decodeURIComponent(link.href).includes('?'), 'no questions in body');
+});
+
+await check('Brief download contains plan, alerts, gaps, checklist and note', async () => {
+  $('#exportButton').click();
+  const brief = await lastDownload('Opportunity review brief');
+  for (const part of ['Countdown', 'Alerts for creative work', 'What the text does not say', 'Readiness checklist', '[x]', 'Ask if PDF portfolios']) assert(brief.includes(part), `brief missing ${part}`);
+});
+
+await check('Print opens the print dialog', async () => {
+  $('#printButton').click();
+  assert(printed === 1, 'print not called');
+});
+
+await check('Working copy saves and reopens review, note and checklist', async () => {
+  $('#saveWorkspace').click();
+  const saved = await lastDownload('{');
+  const data = JSON.parse(saved);
+  assert(data.version === 2 && data.reviewed.length === 1 && data.ready.length === 1, 'saved state incomplete');
+  $('#sourceText').value = 'something else'; $('#sourceText').dispatchEvent(new win.Event('input', { bubbles: true }));
+  const transfer = new win.DataTransfer();
+  transfer.items.add(new win.File([saved], 'copy.json', { type: 'application/json' }));
+  const input = $('#workspaceFile'); input.files = transfer.files; input.dispatchEvent(new win.Event('change', { bubbles: true }));
+  await until(() => $('#reviewedCount').textContent === '1', 'review restored');
+  assert($$('.ready-item input:checked').length === 1, 'checklist not restored');
+});
+
+await check('Version comparison lists added and removed lines', async () => {
+  assert(!$('#changesSection').hidden, 'changes hidden');
+  assert($$('.change-item').length >= 2, 'no changes listed');
+});
+
+await check('Section navigation opens and scrolls to each section', async () => {
+  // Smooth scrolling inside an iframe also moves this page, so the call itself is checked here.
+  const targets = [];
+  for (const link of $$('.nav-link')) {
+    const target = doc.getElementById(link.dataset.target);
+    assert(target, `missing target ${link.dataset.target}`);
+    if (target.tagName === 'DETAILS') target.open = false;
+    const original = target.scrollIntoView;
+    target.scrollIntoView = () => targets.push(link.dataset.target);
+    // anchor.click() is intercepted above for downloads, so dispatch a real click event.
+    link.dispatchEvent(new win.MouseEvent('click', { bubbles: true, cancelable: true }));
+    target.scrollIntoView = original;
+    if (target.tagName === 'DETAILS') assert(target.open, `${link.dataset.target} not opened`);
+  }
+  assert(targets.length === $$('.nav-link').length, `scrolled ${targets.length} of ${$$('.nav-link').length}`);
+  return targets.join(', ');
+});
+
+await check('PDF import reads the fixture locally and keeps pages', async () => {
+  $('#sourceText').value = ''; $('#sourceText').dispatchEvent(new win.Event('input', { bubbles: true }));
+  const buffer = await (await fetch('./fixtures/notice.pdf')).arrayBuffer();
+  const transfer = new win.DataTransfer();
+  transfer.items.add(new win.File([buffer], 'notice.pdf', { type: 'application/pdf' }));
+  $('.field-main').dispatchEvent(new win.DragEvent('drop', { dataTransfer: transfer, bubbles: true, cancelable: true }));
+  await until(() => $('#pdfStatus').textContent.includes('notice.pdf'), 'PDF read', 10000);
+  assert($('#sourceText').value.includes('Applications close'), 'PDF text missing');
+  $('#sourceForm button[type=submit]').click();
+  await until(() => !$('#results').hidden && $$('.page-badge').length, 'page badges');
+  assert($$('.page-badge').some((b) => b.textContent.includes('2')), 'no page 2 badge');
+  assert($('#emailDraft').href.startsWith('mailto:info@example.org'), 'contact not used');
+  return $('#pdfStatus').textContent.slice(0, 60);
+});
+
+await check('Portuguese interface renders the dashboard', async () => {
+  $('[data-lang=pt]').click();
+  await sleep(100);
+  assert($('.hl-alerts h4').textContent === 'Alertas', 'alerts title');
+  assert($('#countdown-title').textContent.includes('Plano'), 'plan title');
+  $('[data-lang=en]').click();
+});
+
+await check('No horizontal overflow', async () => {
+  assert(doc.documentElement.scrollWidth <= win.innerWidth + 1, `scrollWidth ${doc.documentElement.scrollWidth}`);
+});
+
+const passed = results.filter(Boolean).length;
+summary.textContent = `${passed} of ${results.length} checks passed`;
+summary.style.color = passed === results.length ? '#c7fc73' : '#ff8a8a';
+document.title = `${passed}/${results.length} · Interface check`;
+window.__uiResult = { passed, total: results.length };
+</script>
+</body>
+</html>

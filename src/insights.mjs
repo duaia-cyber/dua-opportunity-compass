@@ -39,13 +39,30 @@ const GAP_PATTERNS = {
 // "45 (quarenta e cinco) dias corridos a contar da publicação", "30 days before the event"
 const RELATIVE_DEADLINE = /\d+\s*(?:\([^)]{1,40}\)\s*)?(?:dias|days|business days|working days|semanas|weeks)(?![\p{L}]).{0,40}?(?:corridos|úteis|de antecedência|a contar|após|antes|after|before|from|prior)/iu;
 
-const MILESTONES = [
-  { key: 'gather', offset: 21 },
-  { key: 'draft', offset: 14 },
-  { key: 'budget', offset: 7 },
-  { key: 'review', offset: 3 },
-  { key: 'submit', offset: 1 }
-];
+// Suggested working plans, counted back from the deadline day. The person picks one.
+export const PLANS = {
+  compact: [
+    { key: 'gather', offset: 10 },
+    { key: 'draft', offset: 7 },
+    { key: 'budget', offset: 4 },
+    { key: 'review', offset: 2 },
+    { key: 'submit', offset: 1 }
+  ],
+  standard: [
+    { key: 'gather', offset: 21 },
+    { key: 'draft', offset: 14 },
+    { key: 'budget', offset: 7 },
+    { key: 'review', offset: 3 },
+    { key: 'submit', offset: 1 }
+  ],
+  extended: [
+    { key: 'gather', offset: 42 },
+    { key: 'draft', offset: 28 },
+    { key: 'budget', offset: 14 },
+    { key: 'review', offset: 7 },
+    { key: 'submit', offset: 2 }
+  ]
+};
 
 const DAY_MS = 86400000;
 
@@ -179,16 +196,17 @@ function isoFromUtc(ms) {
  * milestones counted backwards. Both dates are calendar days; time and time zone
  * remain for the person to confirm in the notice.
  */
-export function buildCountdown({ iso, today }) {
+export function buildCountdown({ iso, today, plan = 'standard' }) {
   const deadline = parseIsoDay(iso);
   const start = parseIsoDay(today);
   if (deadline === null || start === null) return null;
   const daysLeft = Math.round((deadline - start) / DAY_MS);
-  const milestones = MILESTONES.map(({ key, offset }) => {
+  const steps = PLANS[plan] || PLANS.standard;
+  const milestones = steps.map(({ key, offset }) => {
     const day = deadline - offset * DAY_MS;
     return { key, offset, iso: isoFromUtc(day), past: day < start };
   });
-  return { iso, daysLeft, passed: daysLeft < 0, milestones };
+  return { iso, daysLeft, passed: daysLeft < 0, plan: PLANS[plan] ? plan : 'standard', milestones };
 }
 
 /**

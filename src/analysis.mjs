@@ -10,7 +10,8 @@ const CATEGORIES = {
   eligibility: ['eligibility', 'eligible', 'ineligible', 'who can apply', 'requisitos', 'elegibilidade', 'inelegível'],
   documents: ['documents', 'required documents', 'application documents', 'documentos', 'documentos necessários', 'papéis'],
   costs: ['costs', 'fees', 'cost', 'co-financing', 'cofinancing', 'taxas', 'custos', 'taxa', 'cofinanciamento'],
-  funding: ['funding', 'grant', 'financial support', 'financiamento', 'subvenção', 'apoio financeiro', 'apoio:']
+  // "grant" alone is also a verb ("works grant the organiser a licence"), so only noun forms count.
+  funding: ['funding', 'grants', 'a grant', 'the grant', 'grant of', 'grant amount', 'grant programme', 'grant program', 'financial support', 'financiamento', 'subvenção', 'apoio financeiro', 'apoio:']
 };
 
 const CATEGORY_KEYS = Object.keys(CATEGORIES);
