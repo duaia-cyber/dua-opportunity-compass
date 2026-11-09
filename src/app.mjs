@@ -1,4 +1,4 @@
-import { analyse } from './analysis.mjs';
+import { analyse, MAX_TEXT_LENGTH } from './analysis.mjs';
 import { createCalendarReference, createPlanCalendar } from './calendar.mjs';
 import { encodeWorkspace, decodeWorkspace } from './workspace.mjs';
 import { detectSignals, findAmounts, findGaps, buildChecklist, buildCountdown, explicitDeadlines, localIsoDay, findContactEmails } from './insights.mjs';
@@ -177,7 +177,7 @@ Object.assign(copy.pt, {
 // Interface copy v4: shorter, quieter; explanations live in the "How to read" panel.
 Object.assign(copy.en, {
   eyebrow:'For creators and small teams', heroDescription:'Deadline, risks and open questions from any public call, each tied to its line.',
-  proofDeadlines:'deadlines read correctly in 10 real lusophone notices', proofPrivacy:'requests to a server: text and PDF stay in your browser', proofTests:'automated checks: 61 unit tests and 30 interface checks',
+  proofDeadlines:'deadlines read correctly in 10 real lusophone notices', proofPrivacy:'requests to a server: text and PDF stay in your browser', proofTests:'automated checks: 74 unit and property tests, 34 interface checks',
   workspaceEyebrow:'Workspace', urlLabel:'Official source link (optional)', urlHint:'Kept as a reference. Not fetched.', compareHint:'Textual differences, not legal conclusions.', pdfPrivacy:'PDFs are read in this browser. Nothing is uploaded.',
   reviewEyebrow:'Review', pointsFound:'excerpts', markedReviewed:'reviewed', openSource:'Original source', boardTitle:'Critical reading',
   infoTitle:'How to read these results', info1:'Every finding quotes the line it came from. Read it as a prompt, not a conclusion.', info2:'Nothing here decides eligibility. Readiness counts what you ticked.', info3:'“Not detected” means not found in the text you supplied, never that it does not exist.', info4:'Milestones are planning suggestions, not dates set by the organiser. Dates are never invented.',
@@ -193,7 +193,7 @@ Object.assign(copy.en, {
 });
 Object.assign(copy.pt, {
   eyebrow:'Para criadores e pequenas equipas', heroDescription:'Prazo, riscos e perguntas em aberto de qualquer chamada pública, cada um ligado à sua linha.',
-  proofDeadlines:'prazos lidos corretamente em 10 avisos reais lusófonos', proofPrivacy:'pedidos a servidores: texto e PDF ficam no teu navegador', proofTests:'verificações automáticas: 61 testes unitários e 30 de interface',
+  proofDeadlines:'prazos lidos corretamente em 10 avisos reais lusófonos', proofPrivacy:'pedidos a servidores: texto e PDF ficam no teu navegador', proofTests:'verificações automáticas: 74 testes unitários e de propriedades, 34 de interface',
   workspaceEyebrow:'Espaço de trabalho', urlLabel:'Ligação à fonte oficial (opcional)', urlHint:'Fica como referência. Não é consultada.', compareHint:'Diferenças de texto, não conclusões jurídicas.', pdfPrivacy:'Os PDFs são lidos neste navegador. Nada é carregado.',
   reviewEyebrow:'Revisão', pointsFound:'excertos', markedReviewed:'revistos', openSource:'Fonte original', boardTitle:'Leitura crítica',
   infoTitle:'Como ler estes resultados', info1:'Cada ponto cita a linha de onde veio. Lê-o como pista, não como conclusão.', info2:'Nada aqui decide elegibilidade. A preparação conta o que marcaste.', info3:'“Não detetado” significa não encontrado no texto fornecido, nunca que não existe.', info4:'Os marcos são sugestões de planeamento, não datas da organização. Nenhuma data é inventada.',
@@ -208,6 +208,21 @@ Object.assign(copy.pt, {
   signalsTitle:'Alertas para criativos', gapsTitle:'Perguntas para a organização', readyTitle:'Checklist de preparação'
 });
 
+Object.assign(copy.en,{tooLong:'This text is longer than 150,000 characters. Split the notice or paste the relevant sections.'});
+Object.assign(copy.pt,{tooLong:'Este texto tem mais de 150.000 caracteres. Divide o aviso ou cola as secções relevantes.'});
+
+// Copy v5: one name per idea ("Questions" = questions for the organiser; "Export" = the files panel).
+Object.assign(copy.en, {
+  navPlan:'Export', planStep:'Export', confirmDeadline:'Confirm deadline',
+  planCalendarLocked:'Confirm the deadline (in the summary card or its excerpt) to unlock the calendar.'
+});
+copy.en.phases={...copy.en.phases,questions:'Clarifications'};
+Object.assign(copy.pt, {
+  navPlan:'Exportar', planStep:'Exportar', confirmDeadline:'Confirmar prazo',
+  planCalendarLocked:'Confirma o prazo (no cartão de resumo ou no excerto) para desbloquear o calendário.'
+});
+copy.pt.phases={...copy.pt.phases,questions:'Esclarecimentos'};
+
 const $ = (selector) => document.querySelector(selector);
 const nodes = {form:$('#sourceForm'), text:$('#sourceText'), url:$('#sourceUrl'), previous:$('#previousText'), count:$('#sourceCount'), error:$('#formError'), results:$('#results'), list:$('#evidenceList'), empty:$('#emptyEvidence'), changesSection:$('#changesSection'), changes:$('#changesList'), link:$('#sourceLink'), announcement:$('#announcement')};
 let language='en';
@@ -217,6 +232,8 @@ let reviewed=new Set();
 let notes=new Map();
 let ready=new Set();
 let pdfInfo=null;
+let pdfMessage=null;
+let stateKey=null;
 let planKey='standard';
 let alertView='type';
 let mapFilter='all';
@@ -252,8 +269,19 @@ function element(tag, className, text) {
   return node;
 }
 
+// Hides stale results. Review state (reviewed, notes, ready) is kept and reused if the same text is analysed again.
 function clearResults() {
-  current=null; reviewed=new Set(); notes=new Map(); ready=new Set(); nodes.results.hidden=true;
+  current=null; nodes.results.hidden=true;
+}
+
+// Keeps review state for the same text (filtered to ids that still exist); starts fresh for a different text.
+function restoreState(key) {
+  if(key!==stateKey){ reviewed=new Set(); notes=new Map(); ready=new Set(); stateKey=key; return; }
+  const validIds=new Set((current.items||[]).map((item)=>String(item.id)));
+  reviewed=new Set([...reviewed].filter((id)=>validIds.has(id)));
+  notes=new Map([...notes].filter(([id])=>validIds.has(id)));
+  const validReady=new Set((current.checklist||[]).map((entry)=>entry.id));
+  ready=new Set([...ready].filter((id)=>validReady.has(id)));
 }
 
 function safeUrl(value) {
@@ -265,6 +293,7 @@ function runAnalysis(event) {
   event?.preventDefault();
   nodes.error.textContent='';
   if(!nodes.text.value.trim()) {nodes.error.textContent=copy[language].enterText; nodes.text.focus(); return;}
+  if(nodes.text.value.length>MAX_TEXT_LENGTH || nodes.previous.value.length>MAX_TEXT_LENGTH) {nodes.error.textContent=copy[language].tooLong; nodes.text.focus(); return;}
   const url=safeUrl(nodes.url.value);
   if(url===null) {nodes.error.textContent=copy[language].badUrl; nodes.url.focus(); return;}
   try { current=analyse({text:nodes.text.value, previousText:nodes.previous.value, url}); }
@@ -272,9 +301,7 @@ function runAnalysis(event) {
   current.example=sampleLoaded;
   attachInsights(current, nodes.text.value);
   current.pages=validPageMap();
-  reviewed=new Set();
-  notes=new Map();
-  ready=new Set();
+  restoreState(textKey(nodes.text.value));
   renderResults();
   nodes.results.hidden=false;
   nodes.results.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
@@ -354,6 +381,7 @@ function lineLink(line) {
 }
 
 function focusLens(line) {
+  const lens=$('#lens'); if(lens && !lens.open) lens.open=true;
   const row=document.getElementById(`lens-${line}`);
   if(!row) return;
   row.scrollIntoView({behavior:motion(),block:'center'});
@@ -395,6 +423,8 @@ function renderLens() {
       for(const m of marks.slice(0,3)) tags.append(element('i',`lens-tag ${m.kind}`,m.label));
       row.append(tags);
       row.tabIndex=0; row.setAttribute('role','button');
+    } else row.tabIndex=-1;
+    if(marks.length){
       row.addEventListener('click',()=>jumpToFinding(n));
       row.addEventListener('keydown',(event)=>{ if(event.key==='Enter'||event.key===' '){ event.preventDefault(); jumpToFinding(n); } });
     }
@@ -431,6 +461,8 @@ function renderKit() {
 function renderPdfStatus() {
   const t=copy[language];
   const status=$('#pdfStatus');
+  if(pdfMessage?.type==='busy') { status.hidden=false; status.className='pdf-status is-busy'; status.textContent=t.pdfReading; return; }
+  if(pdfMessage?.type==='error') { status.hidden=false; status.className='pdf-status is-error'; status.textContent=t.pdfError[pdfMessage.code]||t.pdfError.unreadable; return; }
   if(!pdfInfo) { status.hidden=true; status.textContent=''; status.className='pdf-status'; return; }
   const parts=[pdfInfo.name?t.pdfDone.replace('{name}',pdfInfo.name).replace('{pages}',String(pdfInfo.pageCount)):t.pdfPagesRestored];
   if(pdfInfo.truncated) parts.push(t.pdfTruncated.replace('{page}',String(pdfInfo.truncatedAtPage||pdfInfo.pagesRead)));
@@ -442,20 +474,22 @@ async function importPdf(file) {
   const t=copy[language];
   const status=$('#pdfStatus');
   if(!file) return;
-  pdfInfo=null;
-  status.hidden=false; status.className='pdf-status is-busy'; status.textContent=t.pdfReading;
+  pdfMessage={type:'busy'}; renderPdfStatus();
   try {
     const result=await readPdfFile(file);
     nodes.text.value=result.text;
     nodes.count.textContent=String(result.text.length);
     sampleLoaded=false; nodes.error.textContent=''; clearResults();
+    if(isSamplePrevious(nodes.previous.value)) nodes.previous.value='';
+    pdfMessage=null;
     pdfInfo={name:result.name,pages:result.pages,lineCount:result.lineCount,pageCount:result.pageCount,pagesRead:result.pagesRead,truncated:result.truncated,truncatedAtPage:result.truncatedAtPage,emptyPages:result.emptyPages};
     renderPdfStatus();
     nodes.announcement.textContent=status.textContent;
     nodes.text.focus();
   } catch(error) {
-    status.hidden=false; status.className='pdf-status is-error';
-    status.textContent=t.pdfError[error?.code]||t.pdfError.unreadable;
+    // The previous text, results and page map stay as they were.
+    pdfMessage={type:'error',code:error?.code};
+    renderPdfStatus();
     nodes.announcement.textContent=status.textContent;
   }
 }
@@ -620,7 +654,20 @@ function renderDashboard({state,total,done,percent,signalCount}) {
   const relative=current.gaps.includes('deadlineRelative');
   hero.className=`dash-hero${!state?' is-empty':state.countdown.passed?' is-warning':''}`;
   const top=element('div','hero-top');
-  top.append(element('span','hero-label',t.categories.deadline),element('span',`hero-status${state?.reviewed?' is-reviewed':''}`,state?(state.reviewed?t.statusReviewed:t.statusRead):t.statusMissing));
+  top.append(element('span','hero-label',t.categories.deadline));
+  if(state){
+    // Confirming here reviews the deadline excerpt and unlocks the calendars.
+    const confirm=element('button',`hero-status hero-confirm${state.reviewed?' is-reviewed':''}`,state.reviewed?t.statusReviewed:t.confirmDeadline);
+    confirm.type='button'; confirm.id='heroConfirm'; confirm.setAttribute('aria-pressed',String(state.reviewed));
+    confirm.addEventListener('click',()=>{
+      const ids=(current.items||[]).filter((item)=>item.line===state.deadline.line).map((item)=>String(item.id));
+      setReviewed(ids,!state.reviewed);
+      renderResults();
+      $('#heroConfirm')?.focus();
+      nodes.announcement.textContent=state.reviewed?t.notReviewed:t.reviewed;
+    });
+    top.append(confirm);
+  } else top.append(element('span','hero-status',t.statusMissing));
   hero.append(top);
   const big=element('div','hero-big');
   if(!state) big.append(element('strong','hero-number','—'),element('span','hero-unit',relative?t.gapNames.deadlineRelative:t.tileNoDeadline));
@@ -883,6 +930,8 @@ function renderRulesCard() {
 
 const NAV_SECTIONS=[['insightBoard','navSummary'],['noticeCalendar','navCalendar'],['rulesCard','navRules'],['signalsCard','navAlerts'],['gapsCard','navGaps'],['readinessCard','navReady'],['shortlist','navShortlist'],['lens','navLens'],['evidenceList','navPoints'],['planPanel','navPlan']];
 let navObserver=null;
+// The section a nav link pointed to stays marked until the reader scrolls by themselves.
+let navPinned=null;
 function renderSectionNav() {
   const t=copy[language];
   const nav=$('#sectionNav'); nav.replaceChildren();
@@ -891,25 +940,51 @@ function renderSectionNav() {
     const target=document.getElementById(id);
     if(!target) continue;
     const link=element('a','nav-link',t[key]); link.href=`#${id}`; link.dataset.target=id;
-    link.addEventListener('click',(event)=>{ event.preventDefault(); if(target.tagName==='DETAILS') target.open=true; target.scrollIntoView({behavior:motion(),block:'start'}); });
+    link.addEventListener('click',(event)=>{ event.preventDefault(); if(target.tagName==='DETAILS') target.open=true; navPinned=id; update(); target.scrollIntoView({behavior:motion(),block:'start'}); });
     nav.append(link);
   }
   navObserver?.disconnect();
-  // The active section is the last one whose top has passed 40% of the viewport.
   const update=()=>{
     const line=innerHeight*0.4;
-    let active=NAV_SECTIONS[0][0];
     nav.classList.toggle('is-off',nodes.results.getBoundingClientRect().top>innerHeight*0.6);
-    // Cards side by side start at the same height; the first stays active. The sticky plan panel is never "passed".
-    let lastTop=-Infinity;
-    for(const [id] of NAV_SECTIONS){ if(id==='planPanel') continue; const target=document.getElementById(id); if(!target) continue; const top=target.getBoundingClientRect().top; if(top<=line && top>lastTop+2){ active=id; lastTop=top; } }
+    let active=NAV_SECTIONS[0][0];
+    if(navPinned) active=navPinned;
+    else {
+      // Sections that span the reading line, without containers such as the summary board.
+      const spanning=NAV_SECTIONS.filter(([id])=>id!=='planPanel').map(([id])=>document.getElementById(id)).filter((node)=>{ const box=node?.getBoundingClientRect(); return box && box.top<=line && box.bottom>line; });
+      const inner=spanning.filter((node)=>!spanning.some((other)=>other!==node && node.contains(other)));
+      // Of cards side by side, the one the reader entered last (top closest to the line) wins; a tie keeps reading order.
+      let best=null;
+      for(const node of inner){ const top=node.getBoundingClientRect().top; if(!best || top>best.top+2) best={node,top}; }
+      if(best) active=best.node.id;
+      else {
+        // Between sections: the last one whose top has passed the reading line.
+        for(const [id] of NAV_SECTIONS){ if(id==='planPanel') continue; const node=document.getElementById(id); if(node && node.getBoundingClientRect().top<=line) active=id; }
+      }
+    }
     nav.querySelectorAll('.nav-link').forEach((link)=>{ const on=link.dataset.target===active; link.classList.toggle('is-active',on); if(on) link.setAttribute('aria-current','true'); else link.removeAttribute('aria-current'); });
   };
   let timer=0;
   const onScroll=()=>{ if(!timer) timer=setTimeout(()=>{ timer=0; update(); },60); };
+  const release=()=>{ if(navPinned){ navPinned=null; onScroll(); } };
   addEventListener('scroll',onScroll,{passive:true});
-  navObserver={disconnect:()=>removeEventListener('scroll',onScroll)};
+  for(const type of ['wheel','touchmove','keydown']) addEventListener(type,release,{passive:true});
+  navObserver={disconnect:()=>{ removeEventListener('scroll',onScroll); for(const type of ['wheel','touchmove','keydown']) removeEventListener(type,release); }};
   update();
+}
+
+function excerptGroups() {
+  const groups=new Map();
+  for(const [index,item] of (current.items||[]).entries()){
+    const line=Number.isInteger(item.line)?item.line:-(index+1);
+    if(!groups.has(line)) groups.set(line,{line,quote:item.quote,items:[],ids:[]});
+    const group=groups.get(line); group.items.push(item); group.ids.push(String(item.id??index));
+  }
+  return [...groups.values()];
+}
+
+function setReviewed(ids,on) {
+  for(const id of ids){ if(on) reviewed.add(id); else reviewed.delete(id); }
 }
 
 function describeRule(rule) {
@@ -1007,54 +1082,59 @@ function renderResults() {
   const t=copy[language];
   nodes.list.replaceChildren();
   const items=Array.isArray(current.items)?current.items:[];
-  $('#evidenceCount').textContent=String(items.length);
-  $('#reviewedCount').textContent=String(reviewed.size);
   $('#partialEvidence').hidden=!current.itemsTruncated;
   $('#partialEvidence').textContent=t.partialEvidence;
   nodes.empty.hidden=items.length>0;
   $('#planStatus').textContent=current.example?t.demoWarning:t.planInitial;
-  for(const [index,item] of items.entries()) {
-    const key=String(item.id ?? index);
+  // One excerpt per line: a line that is both "costs" and "funding" is shown once with both labels.
+  const groups=excerptGroups();
+  $('#evidenceCount').textContent=String(groups.length);
+  $('#reviewedCount').textContent=String(groups.filter((group)=>group.ids.every((id)=>reviewed.has(id))).length);
+  groups.forEach((group,index)=>{
+    const key=group.ids[0];
+    const isReviewed=group.ids.every((id)=>reviewed.has(id));
     const row=element('article','evidence-item');
-    row.dataset.line=String(item.line);
-    const category=element('div','evidence-category',t.categories[item.category] || item.category || '');
-    const badge=pageBadge(item.line); if(badge) category.append(badge);
+    row.dataset.line=String(group.line);
+    const category=element('div','evidence-category',group.items.map((item)=>t.categories[item.category]||item.category).join(' · '));
+    const badge=pageBadge(group.line); if(badge) category.append(badge);
     const content=element('div','evidence-content');
-    const quote=element('blockquote','',item.quote);
-    content.append(quote);
-    if(Number.isInteger(item.line)) content.append(lineLink(item.line));
-    if(item.date?.raw){
-      const status=t[item.date.status] || t.candidate;
-      const range=item.date.range && item.date.iso ? ` · ${t.rangeClosing.replace('{date}',formatDay(item.date.iso,{day:'numeric',month:'long',year:'numeric'}))}` : '';
-      content.append(element('p','evidence-meta',`${item.date.raw} · ${status}${range}`));
+    content.append(element('blockquote','',group.quote));
+    if(Number.isInteger(group.line)) content.append(lineLink(group.line));
+    const dated=group.items.find((item)=>item.date?.raw);
+    if(dated){
+      const status=t[dated.date.status] || t.candidate;
+      const range=dated.date.range && dated.date.iso ? ` · ${t.rangeClosing.replace('{date}',formatDay(dated.date.iso,{day:'numeric',month:'long',year:'numeric'}))}` : '';
+      content.append(element('p','evidence-meta',`${dated.date.raw} · ${status}${range}`));
     }
-    if(t.checks[item.category]) content.append(element('p','evidence-next',`${t.nextStep}: ${t.checks[item.category]}`));
+    const checks=[...new Set(group.items.map((item)=>t.checks[item.category]).filter(Boolean))];
+    if(checks.length) content.append(element('p','evidence-next',`${t.nextStep}: ${checks.join(' ')}`));
     const actions=element('div','evidence-actions');
-    const btn=element('button','review-button',reviewed.has(key)?t.undoReview:t.markReviewed);
-    btn.type='button'; btn.classList.toggle('is-reviewed',reviewed.has(key));
-    btn.setAttribute('aria-pressed',String(reviewed.has(key)));
+    const btn=element('button','review-button',isReviewed?t.undoReview:t.markReviewed);
+    btn.type='button'; btn.classList.toggle('is-reviewed',isReviewed);
+    btn.setAttribute('aria-pressed',String(isReviewed));
     btn.addEventListener('click',()=>{
-      if(reviewed.has(key)) reviewed.delete(key); else reviewed.add(key);
+      setReviewed(group.ids,!isReviewed);
       renderResults();
       nodes.list.querySelectorAll('.review-button')[index]?.focus();
-      nodes.announcement.textContent=reviewed.has(key)?t.reviewed:t.notReviewed;
+      nodes.announcement.textContent=!isReviewed?t.reviewed:t.notReviewed;
     });
-    actions.append(btn,element('span','candidate-flag',reviewed.has(key)?t.reviewed:t.candidate));
-    if(item.category==='deadline' && item.date?.status==='explicit' && item.date.iso && reviewed.has(key)) {
+    actions.append(btn,element('span','candidate-flag',isReviewed?t.reviewed:t.candidate));
+    const deadlineItem=group.items.find((item)=>item.category==='deadline' && item.date?.status==='explicit' && item.date.iso);
+    if(deadlineItem && isReviewed) {
       const calendar=element('button','calendar-button',t.calendarAction);
       calendar.type='button';
       calendar.addEventListener('click',()=>{
         try {
           const uid=globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-          const content=createCalendarReference({iso:item.date.iso,quote:item.quote,sourceUrl:current.sourceUrl,language,uid,now:new Date(),example:current.example});
-          downloadFile(content,'text/calendar;charset=utf-8',current.example?'fictional-example-deadline.ics':'deadline-reference.ics');
+          const ics=createCalendarReference({iso:deadlineItem.date.iso,quote:deadlineItem.quote,sourceUrl:current.sourceUrl,language,uid,now:new Date(),example:current.example});
+          downloadFile(ics,'text/calendar;charset=utf-8',current.example?'fictional-example-deadline.ics':'deadline-reference.ics');
         } catch { nodes.announcement.textContent=t.calendarError; }
       });
       actions.append(calendar);
       content.append(element('p','calendar-hint',t.calendarHint));
     }
     content.append(actions);
-    if(reviewed.has(key)) {
+    if(isReviewed) {
       const label=element('label','note-field',t.noteLabel);
       label.htmlFor=`note-${key}`;
       const note=element('textarea','note-input');
@@ -1063,7 +1143,7 @@ function renderResults() {
       content.append(label,note);
     }
     row.append(category,content); nodes.list.append(row);
-  }
+  });
   const hasPrevious=Boolean(nodes.previous.value.trim());
   nodes.changesSection.hidden=!hasPrevious;
   nodes.changes.replaceChildren();
@@ -1128,12 +1208,14 @@ function briefText() {
   const items=Array.isArray(current.items)?current.items:[];
   if(current.itemsTruncated) lines.push(t.partialEvidence,'');
   if(!items.length) lines.push(t.noCandidates);
-  for(const [index,item] of items.entries()){
-    const key=String(item.id??index);
-    lines.push(`${t.categories[item.category]||item.category} — ${reviewed.has(key)?t.checked:t.unchecked}${pageRef(item.line)}`,'',String(item.quote),'');
-    if(t.checks[item.category]) lines.push(`${t.nextStep}: ${t.checks[item.category]}`,'');
-    if(item.date?.raw) lines.push(`${item.date.raw} — ${t[item.date.status]||t.candidate}`,'');
-    if(notes.has(key)) lines.push(`${t.notePrefix}: ${notes.get(key)}`,'');
+  for(const group of excerptGroups()){
+    const isReviewed=group.ids.every((id)=>reviewed.has(id));
+    lines.push(`${group.items.map((item)=>t.categories[item.category]||item.category).join(' · ')} — ${isReviewed?t.checked:t.unchecked}${pageRef(group.line)}`,'',String(group.quote),'');
+    const checks=[...new Set(group.items.map((item)=>t.checks[item.category]).filter(Boolean))];
+    if(checks.length) lines.push(`${t.nextStep}: ${checks.join(' ')}`,'');
+    const dated=group.items.find((item)=>item.date?.raw);
+    if(dated) lines.push(`${dated.date.raw} — ${t[dated.date.status]||t.candidate}`,'');
+    if(isReviewed && notes.has(group.ids[0])) lines.push(`${t.notePrefix}: ${notes.get(group.ids[0])}`,'');
   }
   if(nodes.previous.value.trim()) {
     lines.push(t.changesBrief,'',t.changesNote,'');
@@ -1144,6 +1226,10 @@ function briefText() {
   return lines.join('\n');
 }
 
+function isSamplePrevious(value) {
+  return value===copy.en.previous || value===copy.pt.previous;
+}
+
 function loadSample(){
   nodes.text.value=copy[language].example;
   nodes.previous.value=copy[language].previous;
@@ -1151,7 +1237,7 @@ function loadSample(){
   nodes.previous.closest('details').open=true;
   nodes.count.textContent=String(nodes.text.value.length);
   sampleLoaded=true;
-  pdfInfo=null; renderPdfStatus();
+  pdfInfo=null; pdfMessage=null; renderPdfStatus();
   runAnalysis();
 }
 
@@ -1162,7 +1248,7 @@ function downloadFile(content,type,filename){
 }
 
 nodes.form.addEventListener('submit',runAnalysis);
-for(const node of [nodes.text,nodes.url,nodes.previous]) node.addEventListener('input',()=>{sampleLoaded=/^\s*(FICTIONAL EXAMPLE|EXEMPLO FICTÍCIO)/i.test(nodes.text.value);nodes.count.textContent=String(nodes.text.value.length);nodes.error.textContent='';clearResults(); if(pdfInfo && nodes.text.value.split('\n').length!==pdfInfo.lineCount){pdfInfo=null;renderPdfStatus();}});
+for(const node of [nodes.text,nodes.url,nodes.previous]) node.addEventListener('input',()=>{sampleLoaded=/^\s*(FICTIONAL EXAMPLE|EXEMPLO FICTÍCIO)/i.test(nodes.text.value); if(node===nodes.text && !sampleLoaded && isSamplePrevious(nodes.previous.value)) nodes.previous.value=''; if(node===nodes.text && pdfMessage){pdfMessage=null;renderPdfStatus();}nodes.count.textContent=String(nodes.text.value.length);nodes.error.textContent='';clearResults(); if(pdfInfo && nodes.text.value.split('\n').length!==pdfInfo.lineCount){pdfInfo=null;renderPdfStatus();}});
 $('#pdfButton').addEventListener('click',()=>$('#pdfFile').click());
 $('#pdfFile').addEventListener('change',async(event)=>{ const file=event.target.files?.[0]; try { await importPdf(file); } finally { event.target.value=''; } });
 const mainField=$('.field-main');
@@ -1195,7 +1281,7 @@ $('#saveWorkspace').addEventListener('click',()=>{
   nodes.error.textContent='';
   if(!nodes.text.value.trim()) {nodes.error.textContent=copy[language].enterText;nodes.text.focus();return;}
   try {
-    const encoded=encodeWorkspace({text:nodes.text.value,previousText:nodes.previous.value,url:nodes.url.value.trim(),reviewed:[...reviewed],notes:Object.fromEntries(notes),ready:[...ready],pages:validPageMap()});
+    const encoded=encodeWorkspace({text:nodes.text.value,previousText:nodes.previous.value,url:nodes.url.value.trim(),reviewed:[...reviewed],notes:Object.fromEntries([...notes].filter(([id])=>reviewed.has(id))),ready:[...ready],pages:validPageMap()});
     downloadFile(encoded,'application/json;charset=utf-8','dua-opportunity-workspace.json');
   } catch {nodes.error.textContent=copy[language].saveError;}
 });
@@ -1222,6 +1308,7 @@ $('#workspaceFile').addEventListener('change',async(event)=>{
     notes=new Map(Object.entries(data.notes).filter(([id])=>validIds.has(id)));
     const validReady=new Set(current.checklist.map(entry=>entry.id));
     ready=new Set(data.ready.filter(id=>validReady.has(id)));
+    stateKey=textKey(data.text);
     renderResults();nodes.results.hidden=false;
     nodes.announcement.textContent=copy[language].planInitial;
   } catch {nodes.error.textContent=copy[language].workspaceError;}

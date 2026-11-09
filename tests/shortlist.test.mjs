@@ -69,5 +69,5 @@ test('CSV escapes quotes and neutralises spreadsheet formulas', () => {
   assert.ok(lines[1].startsWith(`"'=HYPERLINK(""http://x"")"`));
   assert.ok(lines[1].includes(',relative,'));
   assert.ok(lines[2].startsWith('"Bolsa ""C"", Lisboa (fictional)",2026-11-20,'));
-  assert.ok(lines[2].includes(`,'-5,`), 'a negative number is neutralised as text');
+  assert.ok(lines[2].includes(',-5,'), 'a negative number of days stays a number');
 });

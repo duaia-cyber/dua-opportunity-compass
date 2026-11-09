@@ -133,3 +133,21 @@ test('reads "grant" as funding only when it is a noun', () => {
   assert.ok(categories('A grant of up to €5,000 is available.').includes('funding'));
   assert.ok(categories('Grants cover travel only.').includes('funding'));
 });
+
+test('an extended deadline wins over the original date', async () => {
+  const { explicitDeadlines } = await import('../src/insights.mjs');
+  for (const text of [
+    'Applications close on 4 November 2026.\nDeadline extended: applications now close on 30 November 2026.',
+    'As candidaturas terminam a 4 de novembro de 2026.\nO prazo foi prorrogado até 30 de novembro de 2026.'
+  ]) {
+    const { items } = analyse({ text, previousText: '', url: '' });
+    assert.equal(explicitDeadlines(items)[0].date.iso, '2026-11-30', text);
+  }
+});
+
+test('accepts the same maximum length as the text boxes and the working copy', async () => {
+  const { MAX_TEXT_LENGTH } = await import('../src/analysis.mjs');
+  assert.equal(MAX_TEXT_LENGTH, 150000);
+  assert.doesNotThrow(() => analyse({ text: 'x'.repeat(150000), previousText: '', url: '' }));
+  assert.throws(() => analyse({ text: 'x'.repeat(150001), previousText: '', url: '' }));
+});

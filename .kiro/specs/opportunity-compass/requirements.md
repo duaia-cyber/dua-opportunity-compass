@@ -96,6 +96,15 @@ A deterministic board shown above the excerpt list. Every element is either a qu
 - **Obligations if selected**: lines with an obligation verb and a selected/beneficiary subject, classified as refund, report, credit and publicity, delivery or other commitment. Without a selected subject only refund, report and credit clauses are kept. Data-protection clauses are excluded.
 - The brief includes the calendar, the rules and the obligations. All three are prompts to read the line, not legal advice.
 
+### 17. Reading order and review
+- The results read in this order: summary (deadline, alerts by type, readiness) → time (notice calendar, plan to the deadline) → content (submission rules or obligations, notice map) → alerts for creative work, beside questions for the organiser and the readiness checklist → shortlist → evidence lens → excerpts and the export panel. The section navigation follows the same order.
+- One excerpt per line: a line matched by several categories is shown once with all labels; reviewing it reviews every category of that line. Counts are per line.
+- The deadline can be confirmed from the summary card ("Confirm deadline"); this reviews the deadline excerpt and unlocks the calendars. Undoing it locks them again.
+- Names are unique per idea: "Questions" is questions for the organiser; the calendar phase for clarification requests is "Clarifications"; the files panel is "Export".
+
+### 18. Property-based tests
+- `tests/properties.test.mjs` checks invariants on generated notices: quotes equal their line; no invented dates; slash and year-less dates never normalised; countdown only from explicit dates with a score of at least 1; calendar, amounts, rules, obligations and alerts quote their line; checklist ids unique and accepted by the working copy; plan milestones ordered and correct; CSV free of formula cells; working copies round-trip exactly; PDF re-joining loses no characters.
+
 ### 13. Shortlist
 - After an analysis the user may add the call to a shortlist kept in memory for this tab only (no browser storage, nothing sent). Re-adding the same text updates its row; at most 30 calls.
 - Each row: title (first line of the text, without a fictional-example prefix), deadline or its state (relative, unclear, not found), days left, first amount quoted, number of firm alerts, number of open questions and readiness. Readiness of the current call follows the checklist live.

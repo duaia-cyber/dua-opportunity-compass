@@ -5,6 +5,9 @@
 
 import { startsWordAt } from './insights.mjs';
 
+/** Same limit as the text boxes, the PDF import and the working copy. */
+export const MAX_TEXT_LENGTH = 150000;
+
 const CATEGORIES = {
   deadline: ['deadline', 'due date', 'submission deadline', '截止日期', 'prazo final', 'data de entrega', 'applications close', 'closes on', 'prazo', 'candidaturas terminam'],
   eligibility: ['eligibility', 'eligible', 'ineligible', 'who can apply', 'requisitos', 'elegibilidade', 'inelegível'],
@@ -103,6 +106,8 @@ function extractDatesFromLine(line) {
 const SUBMIT = /(?<![\p{L}])(candidatur|inscri[çc]|submiss|submet|propostas|application|submission|entries|apply)/iu;
 const CLOSE = /(?<![\p{L}])(termin|encerr|até|deadline|clos|until|no later than|data limite|prazo)/iu;
 const OTHER_PHASE = /(?<![\p{L}])(relatório|report|execução|concretiza|decorrer|realiza[çc]|evento|event|júri|jury|decis|anúncio|announce|resultad|results|avalia|evaluat|assessment|sele[çc][ãa]o|selection|pagamento|payment|abertura|opening|publica[çc]|publication|início|vigência)/iu;
+// "Deadline extended", "prazo prorrogado": a later notice line that replaces the original date.
+const EXTENDED = /(?<![\p{L}])(prorroga|prorrogad|prorrogação|extended|extension|novo prazo|new deadline|alargad|adiad|postponed)/iu;
 const DEADLINE_HEADING = /(?<![\p{L}])(prazo|prazos|deadline|deadlines|data limite|datas|calendário|timeline|dates)/iu;
 // "between X and Y" is left ambiguous on purpose: it does not say which day closes.
 const RANGE_CONNECTOR = /(?:^|\s)(?:a|até|ao|to|until|through)(?:\s|$)|[–—]/iu;
@@ -149,6 +154,7 @@ function deadlineScore(lines, index) {
   if (SUBMIT.test(line)) score += 2;
   if (CLOSE.test(line)) score += 2;
   if (OTHER_PHASE.test(line)) score -= 2;
+  if (EXTENDED.test(line)) score += 3;
   if (underDeadlineHeading(lines, index)) score += 3;
   return score;
 }
@@ -255,12 +261,12 @@ export function analyse({ text, previousText, url }) {
   }
 
   // Limit input size
-  if (text && text.length > 100000) {
-    throw new Error('Input text too large (max 100000 characters)');
+  if (text && text.length > MAX_TEXT_LENGTH) {
+    throw new Error(`Input text too large (max ${MAX_TEXT_LENGTH} characters)`);
   }
 
-  if (previousText && previousText.length > 100000) {
-    throw new Error('Previous text too large (max 100000 characters)');
+  if (previousText && previousText.length > MAX_TEXT_LENGTH) {
+    throw new Error(`Previous text too large (max ${MAX_TEXT_LENGTH} characters)`);
   }
 
   const sourceUrl = url || null;

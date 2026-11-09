@@ -109,11 +109,25 @@ await check('Invalid source link is refused', async () => {
   $('#sourceUrl').value = '';
 });
 
-await check('Example loads, analyses and shows six excerpts', async () => {
+await check('Example loads and shows one excerpt per line', async () => {
   $('#demoButton').click();
   await until(() => !$('#results').hidden, 'results visible');
-  assert($('#evidenceCount').textContent === '6', `count ${$('#evidenceCount').textContent}`);
+  assert($('#evidenceCount').textContent === '5', `count ${$('#evidenceCount').textContent}`);
+  const shared = $$('.evidence-category').find((cell) => cell.textContent.includes('Costs · Funding'));
+  assert(shared, 'the costs and funding line is not shown once with both labels');
   return `${$('#evidenceCount').textContent} excerpts`;
+});
+
+await check('“Confirm deadline” in the summary card reviews the deadline and back', async () => {
+  const button = $('#heroConfirm');
+  assert(button && button.getAttribute('aria-pressed') === 'false', 'confirm button missing');
+  button.click();
+  assert($('#heroConfirm').getAttribute('aria-pressed') === 'true', 'not confirmed');
+  assert($('#reviewedCount').textContent === '1', 'excerpt not reviewed');
+  assert(!$('#planCalendarButton').disabled, 'calendar still locked');
+  $('#heroConfirm').click();
+  assert($('#reviewedCount').textContent === '0', 'undo failed');
+  assert($('#planCalendarButton').disabled, 'calendar not locked again');
 });
 
 await check('Deadline hero counts days to 4 December 2026', async () => {
@@ -158,7 +172,7 @@ await check('Map filter highlights only matching lines', async () => {
 
 await check('Notice calendar lists questions, deadline and results by phase', async () => {
   const phases = $$('.cal-row .row-tag').map((tag) => tag.textContent);
-  assert(phases.join('|') === 'Questions|Deadline|Results', `phases ${phases.join('|')}`);
+  assert(phases.join('|') === 'Clarifications|Deadline|Results', `phases ${phases.join('|')}`);
   setSelect('calendarView', 'future');
   assert($$('.cal-row').length >= 1, 'future view empty');
   setSelect('calendarView', 'all');
@@ -196,7 +210,12 @@ await check('Lens line jumps to its finding', async () => {
   assert($('.is-flash'), 'nothing highlighted');
 });
 
-await check('“Show in text” focuses the lens line', async () => {
+await check('“Show in text” opens a closed lens and focuses the line', async () => {
+  $('#lens').open = false;
+  $$('.cal-row .line-link')[0].click();
+  await sleep(200);
+  assert($('#lens').open, 'lens stayed closed');
+  assert(doc.activeElement?.id?.startsWith('lens-'), 'calendar line not focused');
   $('.signal .line-link').click();
   await sleep(200);
   assert(doc.activeElement?.id?.startsWith('lens-'), 'lens line not focused');
@@ -217,6 +236,17 @@ await check('Reviewing the deadline unlocks note and calendars', async () => {
   const events = (plan.text.match(/BEGIN:VEVENT/g) || []).length;
   assert(events >= 2 && events <= 6, `plan calendar has ${events} events`);
   return `plan calendar: ${events} events`;
+});
+
+await check('Re-analysing the same text keeps reviews and notes', async () => {
+  $('#sourceUrl').value = 'https://example.org/call'; $('#sourceUrl').dispatchEvent(new win.Event('input', { bubbles: true }));
+  $('#sourceForm button[type=submit]').click();
+  await until(() => !$('#results').hidden, 'results back');
+  assert($('#reviewedCount').textContent === '1', `reviewed ${$('#reviewedCount').textContent}`);
+  assert($('.note-input')?.value === 'Ask if PDF portfolios are accepted', 'note lost');
+  $('#sourceUrl').value = ''; $('#sourceUrl').dispatchEvent(new win.Event('input', { bubbles: true }));
+  $('#sourceForm button[type=submit]').click();
+  await until(() => !$('#results').hidden, 'results back again');
 });
 
 await check('Checklist ticks move the readiness ring', async () => {
@@ -359,6 +389,20 @@ await check('PDF import reads the fixture locally and keeps pages', async () => 
   return $('#pdfStatus').textContent.slice(0, 60);
 });
 
+await check('A failed PDF import keeps the previous PDF and its message survives a language switch', async () => {
+  const transfer = new win.DataTransfer();
+  transfer.items.add(new win.File(['not a pdf'], 'broken.pdf', { type: 'application/pdf' }));
+  $('.field-main').dispatchEvent(new win.DragEvent('drop', { dataTransfer: transfer, bubbles: true, cancelable: true }));
+  await until(() => $('#pdfStatus').classList.contains('is-error'), 'error shown', 10000);
+  const english = $('#pdfStatus').textContent;
+  $('[data-lang=pt]').click();
+  assert(!$('#pdfStatus').hidden && $('#pdfStatus').textContent !== english, 'error hidden or not translated');
+  $('[data-lang=en]').click();
+  $('#sourceForm button[type=submit]').click();
+  await until(() => !$('#results').hidden, 'results');
+  assert($$('.page-badge').some((b) => b.textContent.includes('2')), 'page map lost');
+});
+
 await check('Portuguese interface renders the dashboard', async () => {
   $('[data-lang=pt]').click();
   await sleep(100);
@@ -369,6 +413,17 @@ await check('Portuguese interface renders the dashboard', async () => {
 
 await check('No horizontal overflow', async () => {
   assert(doc.documentElement.scrollWidth <= win.innerWidth + 1, `scrollWidth ${doc.documentElement.scrollWidth}`);
+});
+
+await check('Typing your own call removes the fictional earlier version', async () => {
+  $('#demoButton').click();
+  await until(() => $('#previousText').value.startsWith('FICTIONAL'), 'example earlier text');
+  $('#sourceText').value = 'Bolsa Real\nApplications close on 4 December 2026.';
+  $('#sourceText').dispatchEvent(new win.Event('input', { bubbles: true }));
+  assert($('#previousText').value === '', 'fictional earlier text kept');
+  $('#sourceForm button[type=submit]').click();
+  await until(() => !$('#results').hidden, 'results');
+  assert($('#changesSection').hidden, 'comparison shown against the fictional text');
 });
 
 const passed = results.filter(Boolean).length;

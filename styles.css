@@ -490,3 +490,13 @@ textarea:focus,input[type=url]:focus{outline:none;border-color:var(--text-2)}
 .obligation-refund .row-tag{border-color:var(--accent);color:var(--accent)}
 @media(max-width:1180px){.notice-calendar,.rules-card{grid-column:span 6}}
 @media(max-width:980px){.dash .notice-calendar,.dash .rules-card{grid-column:1/-1}}
+/* v5 order: alerts on the left, questions and checklist stacked on the right */
+.board-grid{grid-template-columns:minmax(0,7fr) minmax(0,5fr);grid-template-areas:"alerts questions" "alerts ready"}
+.board-grid .card-signals{grid-area:alerts}
+.board-grid .card-gaps{grid-area:questions}
+.board-grid .card-ready{grid-area:ready;grid-column:auto}
+.board-grid .card-ready .ready-list{grid-template-columns:1fr}
+.hero-confirm{background:transparent;font:inherit;font-size:11.5px;cursor:pointer;transition:border-color .2s,background .2s}
+.hero-confirm:hover{border-color:var(--text-2);color:var(--text)}
+.hero-confirm.is-reviewed{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
+@media(max-width:980px){.board-grid{grid-template-columns:1fr;grid-template-areas:"alerts" "questions" "ready"}}

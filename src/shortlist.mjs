@@ -75,6 +75,8 @@ export function sortEntries(entries, by = 'deadline') {
 
 // A cell starting with =, +, - or @ (or a control character) can run as a formula in a spreadsheet.
 function csvCell(value) {
+  // Numbers (such as -5 days left) stay numbers; only text can carry a formula.
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
   let text = value === null || value === undefined ? '' : String(value);
   if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
   return /[",\n\r;]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;

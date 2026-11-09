@@ -45,8 +45,9 @@ Open `http://127.0.0.1:3000/` and click **Try the example**. The fictional examp
 
 ## Evidence that it works
 
-- **Interface check**: serve the folder and open `/tests/ui.html`. It loads the app and operates every control: language, validation, the example, the three dropdowns, the map, the lens, review, notes, both calendars, the checklist, copying questions, the e-mail draft, the brief, print, saving and reopening a working copy, version comparison, section navigation, PDF import and the layout. Downloads, clipboard and print are intercepted. It also covers the shortlist, lens search and keyboard use of the notice map. It also covers the notice calendar, the rules dropdown and rules in the checklist. Last run: 30 of 30 passed.
-- **Unit tests**: run `node --test tests/*.test.mjs` with Node 20+ (61 tests). They cover dates, periods, deadline ranking, alerts, gaps, checklist, countdown, calendar files, PDF line rebuilding (using items captured from pdf.js), working copies, and a privacy check that fails if application code gains a network call or a remote script.
+- **Interface check**: serve the folder and open `/tests/ui.html`. It loads the app and operates every control: language, validation, the example, the three dropdowns, the map, the lens, review, notes, both calendars, the checklist, copying questions, the e-mail draft, the brief, print, saving and reopening a working copy, version comparison, section navigation, PDF import and the layout. Downloads, clipboard and print are intercepted. It also covers the shortlist, lens search and keyboard use of the notice map. It also covers the notice calendar, the rules dropdown and rules in the checklist. Last run: 34 of 34 passed.
+- **Unit tests**: run `node --test tests/*.test.mjs` with Node 20+ (74 tests, including 11 property-based tests). They cover dates, periods, deadline ranking, alerts, gaps, checklist, countdown, calendar files, PDF line rebuilding (using items captured from pdf.js), working copies, and a privacy check that fails if application code gains a network call or a remote script.
+- **Property-based tests**: `tests/properties.test.mjs` generates hundreds of notices per run (dates in nine forms, clauses, noise, unicode, formula-like text) and checks invariants. Every quote is its own line. No date is invented: a normalised date's day and year are written in the line. Slash and year-less dates are never normalised. The countdown only uses explicit, positively scored deadlines. Checklist ids are unique and survive a working copy. Plan milestones are ordered. CSV never starts a formula. PDF re-joining never loses a character. Last checked across 20 seeds (66,000 property checks), with no failures.
 - **Real notices**: [docs/EVALUATION.md](docs/EVALUATION.md) records a run over 10 public calls from Portugal, Brazil, Cabo Verde, Moçambique and the CPLP (117 pages).
   - The first run found the right deadline in 1 of 10 notices. After the fixes it documents, all 10 are handled correctly: 7 dates, 2 relative deadlines named as such, and 1 incomplete date that is refused.
   - Of 25 alerts, 22 point to a clause worth reading, 2 are weaker than labelled and 1 is a false positive. Recall was not measured.
@@ -68,11 +69,11 @@ Text and PDFs are processed in the browser. Nothing is uploaded, stored on a ser
 
 - **Kiro CLI** drafted the original specification and developed the first analysis, calendar-export and working-copy modules. That output was inspected and revised after tests exposed date, calendar and validation defects.
 - **`.kiro/` is the source of truth**:
-  - `specs/opportunity-compass/requirements.md` covers sections 1–12, including the PDF import, evidence lens, application kit, deadline ranking and evaluation.
+  - `specs/opportunity-compass/requirements.md` covers sections 1–18, including the PDF import, evidence lens, application kit, deadline ranking, evaluation, notice calendar, submission rules, obligations, reading order and property-based tests.
   - `steering/source-of-truth.md` holds the safety rules every change must respect.
   - `agents/notice-auditor.json` is a read-only auditor agent that checks findings against those rules and runs the tests.
   - `hooks/opportunity-compass.json` runs the full test suite, including the privacy check, whenever the agent saves a module.
-- **Claude Code** later added the critical-reading, PDF, evidence-lens and kit modules, the real-notice evaluation, and the matching spec, steering, agent and hook files. The agent and hook follow the Kiro configuration reference as published on kiro.dev on 9 November 2026, but they have not yet been run inside Kiro.
+- **Claude Code** later added most features: the critical-reading, PDF, evidence-lens, kit, shortlist and notice modules; the property-based tests; the real-notice evaluation; and the matching spec, steering, agent and hook files. The agent and hook follow the Kiro configuration reference as published on kiro.dev on 9 November 2026, but they have not yet been run inside Kiro. `docs/KIRO-PLAYBOOK.md` lists the steps to run them in Kiro and document the results.
 - No Kiro or AI API is called at runtime.
 
 ## Project layout
@@ -91,6 +92,9 @@ vendor/pdfjs/               pdf.js 6.5.438 (Apache-2.0), unmodified
 tests/                      node:test suites, a captured pdf.js fixture and ui.html (interface check)
 scripts/evaluate-corpus.mjs metrics-only evaluation over your own PDFs
 docs/EVALUATION.md          real-notice evaluation
+docs/SUBMISSION.md          Devpost submission draft (English)
+docs/VIDEO-SCRIPT.md        under-3-minute demo script
+docs/KIRO-PLAYBOOK.md       steps to complete and document Kiro use
 .kiro/                      spec, steering, agent and hooks
 ```
 
